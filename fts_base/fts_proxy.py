@@ -25,7 +25,10 @@ try:
     from openerp.osv import fields
     from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
     from openerp import SUPERUSER_ID
-    from openerp import tools
+    #from openerp import tools
+    # temporary workaround for lp:1031442
+    import cache_fixed_kwargs as tools
+
 except:
     from osv.osv import osv_memory as TransientModel
     import osv.fields as fields
