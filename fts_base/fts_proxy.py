@@ -39,6 +39,8 @@ except:
 from fts_base import fts_base_meta
 from fts_base import fts_base
 from datetime import datetime
+import logging
+logger = logging.getLogger('fulltextsearch')
 
 class fts_proxy(TransientModel):
 
@@ -84,6 +86,7 @@ class fts_proxy(TransientModel):
                 models.append(arg[2])
 
         if not searchstring:
+            logger.debug('doing nothing because i got no search string')
             return []
 
         res = 0 if count else []
@@ -94,8 +97,6 @@ class fts_proxy(TransientModel):
         #if self.search.lookup(self, cr, args, 0, None, order, context, count))
         #and works only in openerp6.1
 
-        import logging
-        logger = logging.getLogger('fulltextsearch')
         logger.debug('offset: %s limit: %s order=%s count=%s' % (offset, limit,
             order, count))
         logger.debug('args ' + str(args))
@@ -112,7 +113,7 @@ class fts_proxy(TransientModel):
             res += search_plugin.search(cr, uid, args, order=order,
                                             context=context, count=count,
                                             searchstring=searchstring)
-
+            logger.debug(res)
             logger.debug('finished')
 
         if count:
