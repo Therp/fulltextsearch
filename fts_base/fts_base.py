@@ -18,6 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+from openerp.osv import expression
 try:
     from openerp import SUPERUSER_ID
 except:
@@ -189,6 +190,32 @@ class fts_base(object):
             {'table': table, 'column': column})
         return cr.rowcount == 1
 
+    def _get_filter_expression(self, cr, uid, args, context=None):
+        """Return a expression for additional filtering"""
+        orm_model=self.pool.get(self._model)
+
+        applicable_args=[]
+
+        def get_applicable_args(args, index):
+            if expression.is_leaf(args[index]):
+                #TODO: also check for inherited fields etc
+                if (args[index][0] in orm_model._columns and
+                    args[index][0] not in ['text','model']):
+                    return [args[index]], 1
+                else:
+                    return [], 1
+            else:
+                op1=get_applicable_args(args, index+1)
+                op2=get_applicable_args(args, index+op1[1]+1)
+                return (([args[index]] 
+                        if len(op1[0]) > 0 and len(op2[0]) > 0 
+                        else []) +
+                        op1[0] + op2[0],
+                        op1[1] + op2[1] + 1
+                        )
+
+        args=get_applicable_args(expression.normalize(args), 0)[0]
+        return expression.expression(cr, uid, args, orm_model, context)
 
     def search(self, cr, uid, args, order=None, context=None, count=False,
                searchstring=None):
@@ -202,6 +229,9 @@ class fts_base(object):
 
         if self._disable_seqscan:
             cr.execute('set enable_seqscan=off')
+
+        filters=self._get_filter_expression(cr, uid, args, context).to_sql()
+        filters=cr.mogrify(filters[0], filters[1])
 
         cr.execute(
         (
@@ -239,7 +269,7 @@ class fts_base(object):
                                             "coalesce(\"" + y + "\", '')",
                                             self._indexed_column)),
                'title_column': self._title_column,
-        },
+        } + ' AND ' + str(filters),
         {'searchstring': searchstring})
 
         for row in cr.fetchall():
