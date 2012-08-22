@@ -46,12 +46,22 @@ class fts_proxy(TransientModel):
 
     _name = 'fts.proxy'
 
+    def _get_model_name(self, cr, uid, ids, name, arg, context):
+        self.read(cr, uid, ids, ['model'])
+
     _columns = {
               'name': fields.char('Name', size=256),
               'text': fields.function(lambda *args: {}, string='Searchstring',
                                       type='text',
                                       fnct_search=lambda *args: {}),
               'model': fields.char('Model', size=256, translate=True),
+              'model_name': fields.function(lambda self, cr, uid, ids, name, arg, context: 
+                  dict([
+                      (this['id'], self.pool.get('ir.model').name_search(
+                          cr, uid, this['model'])[0][1]) 
+                      for this in 
+                      self.read(cr, uid, ids, ['model'])]), string='Type', 
+                  type='char'),
               'res_id': fields.integer('Res ID'),
               'rank': fields.float('Rank'),
               'summary': fields.text('Summary')
@@ -127,24 +137,17 @@ class fts_proxy(TransientModel):
                                              context=context)
 
     def open_document(self, cr, uid, ids, context=None):
-        action_data = False
-        if ids:
-            result = self.browse(cr, uid, ids[0], context=context)
-            model = result.model
-            res_id = result.res_id
-
-            ir_act_window = self.pool.get('ir.actions.act_window')
-            action_ids = ir_act_window.search(cr, uid, [('res_model', '=', model), ('view_type', '=', 'form')])
-            if action_ids:
-                action_data = ir_act_window.read(cr, uid, action_ids[0], context=context)
-                action_data.update({
-                    'domain' : "[('id','=',%d)]" % (res_id),
-                    'nodestroy': True,
-                    'context': {},
-                    'res_id': res_id,
-                    })
-
-        return action_data
+        if not ids:
+            return False
+        this=self.read(cr, uid, ids[0], ['model', 'res_id'])
+        return {
+                'type': 'ir.actions.act_window',
+                'res_model': this['model'],
+                'view_type': 'form',
+                'view_mode': 'form,tree',
+#                'target': 'new',
+                'res_id': this['res_id'],
+                }
 
     def create_init_tsvector_cronjob(self, cr, uid, fts_object):
 
