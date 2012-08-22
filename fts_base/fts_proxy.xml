@@ -25,6 +25,7 @@
                     <button name="open_document" type="object" icon="gtk-jump-to" string="Open document" />
                     <field name="name" />
                     <field name="summary" invisible="not context.get('fts_summary')" />
+                    <field name="model_name" />
                     <!--
                     <field name="rank" />
                     <field name="model" />
