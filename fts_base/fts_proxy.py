@@ -145,7 +145,19 @@ class fts_proxy(TransientModel):
                 'res_model': this['model'],
                 'view_type': 'form',
                 'view_mode': 'form,tree',
-#                'target': 'new',
+                'res_id': this['res_id'],
+                }
+
+    def preview_document(self, cr, uid, ids, context=None):
+        if not ids:
+            return False
+        this=self.read(cr, uid, ids[0], ['model', 'res_id'])
+        return {
+                'type': 'ir.actions.act_window',
+                'res_model': this['model'],
+                'view_type': 'form',
+                'view_mode': 'page',
+                'target': 'new',
                 'res_id': this['res_id'],
                 }
 
