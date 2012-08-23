@@ -23,6 +23,7 @@
             <field name="arch" type="xml">
                 <tree string="Fulltext search - results">
                     <button name="open_document" type="object" icon="gtk-jump-to" string="Open document" />
+                    <button name="preview_document" type="object" icon="STOCK_PRINT_PREVIEW" string="Preview document" />
                     <field name="name" />
                     <field name="summary" invisible="not context.get('fts_summary')" />
                     <field name="model_name" />
