@@ -199,7 +199,13 @@ class fts_base(object):
         def get_applicable_args(args, index):
             if expression.is_leaf(args[index]):
                 #TODO: also check for inherited fields etc
-                if (args[index][0] in orm_model._columns and
+                if ((
+                        args[index][0] in orm_model._columns or
+                        orm_model._log_access and 
+                            args[index][0]  in ['create_date','create_uid',
+                            'write_date', 'write_uid']
+                    )
+                    and
                     args[index][0] not in ['text','model']):
                     return [args[index]], 1
                 else:
