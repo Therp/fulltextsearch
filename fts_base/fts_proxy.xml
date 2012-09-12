@@ -22,7 +22,7 @@
             <field name="type">tree</field>
             <field name="arch" type="xml">
                 <tree string="Fulltext search - results">
-                    <button name="open_document" type="object" icon="gtk-jump-to" string="Open document" />
+                    <button name="open_document" type="object" icon="../../../../../fts_base/static/src/img/pencil" string="Open document" />
                     <button name="preview_document" type="object" icon="STOCK_PRINT_PREVIEW" string="Preview document" />
                     <field name="name" />
                     <field name="summary" invisible="not context.get('fts_summary')" />
@@ -40,7 +40,9 @@
             <field name="name">Fulltext search</field>
             <field name="res_model">fts.proxy</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree</field>
+            <field name="view_mode">list</field>
+            <field name="context">{}</field>
+            <field name="search_view_id" ref="search" />
         </record>
 
         <menuitem action="action_search_tree" id="menu_search"
