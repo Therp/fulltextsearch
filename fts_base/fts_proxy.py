@@ -25,9 +25,23 @@ try:
     from openerp.osv import fields
     from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
     from openerp import SUPERUSER_ID
+    import openerp
     #from openerp import tools
     # temporary workaround for lp:1031442
     import cache_fixed_kwargs as tools
+    #this override creates a nicer view for the search results
+    clean_action_org=openerp.addons.web.controllers.main.clean_action
+    def clean_action(req, action, do_not_eval=False):
+        global clean_action_org
+        action=clean_action_org(req, action,do_not_eval)
+        if (action.get('type')=='ir.actions.act_window' and action.get('view_id') 
+                and action.get('view_id')[1]=='fts_proxy.tree'):
+            action['flags']['selectable']=False
+            action['flags']['addable']=False
+            action['flags']['isClarkGable']=False
+            action['flags']['deletable']=False
+        return action
+    openerp.addons.web.controllers.main.clean_action=clean_action
 
 except:
     from osv.osv import osv_memory as TransientModel
@@ -50,21 +64,21 @@ class fts_proxy(TransientModel):
         self.read(cr, uid, ids, ['model'])
 
     _columns = {
-              'name': fields.char('Name', size=256),
-              'text': fields.function(lambda *args: {}, string='Searchstring',
+              'name': fields.char('Name', size=256, readonly=True),
+              'text': fields.function(lambda *args,**kwargs: {}, string='Searchstring',
                                       type='text',
-                                      fnct_search=lambda *args: {}),
-              'model': fields.char('Model', size=256, translate=True),
+                                      fnct_search=lambda *args,**kwargs: {}, readonly=True),
+              'model': fields.char('Model', size=256, translate=True, readonly=True),
               'model_name': fields.function(lambda self, cr, uid, ids, name, arg, context: 
                   dict([
                       (this['id'], self.pool.get('ir.model').name_search(
                           cr, uid, this['model'])[0][1]) 
                       for this in 
                       self.read(cr, uid, ids, ['model'])]), string='Type', 
-                  type='char'),
-              'res_id': fields.integer('Res ID'),
-              'rank': fields.float('Rank'),
-              'summary': fields.text('Summary')
+                  type='char', readonly=True),
+              'res_id': fields.integer('Res ID', readonly=True),
+              'rank': fields.float('Rank', readonly=True),
+              'summary': fields.text('Summary', readonly=True)
               }
 
     _order = 'rank DESC, model ASC'

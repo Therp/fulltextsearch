@@ -30,7 +30,6 @@ class fts_base_meta(type):
 
     def __init__(self, name, bases, attrs):
         if name != 'fts_base':
-
             cr = self.pool.db.cursor()
             self._plugins.append(self(self.pool, cr))
             cr.commit()
