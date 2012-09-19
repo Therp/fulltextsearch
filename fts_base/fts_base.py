@@ -31,7 +31,13 @@ class fts_base_meta(type):
     def __init__(self, name, bases, attrs):
         if name != 'fts_base':
             cr = self.pool.db.cursor()
-            self._plugins.append(self(self.pool, cr))
+            cls=self(self.pool, cr)
+            if cls._replace_base:
+                for base in bases:
+                    for plugin in self._plugins:
+                        if plugin.__class__==base:
+                            self._plugins.remove(plugin)
+            self._plugins.append(cls)
             cr.commit()
             cr.close()
 
@@ -86,6 +92,14 @@ class fts_base(object):
     """The postgresql query planner (as of 9.0) chooses against using the query
     planner way too often. This forces hin to use it which improves speed in all
     tested cases. Disable (and report) if this causes problems for you."""
+
+    _replace_base = False
+    """Set to true if you want to inherit a class inherited from this one and
+    only show search results from your inherited class"""
+
+    """Extra columns to be fetched from _table. Instead of columns, you can 
+    also give expressions"""
+    _extra_columns = []
 
     def __init__(self, pool, cr):
         """Assign default values and create _tsvector_column if necessary."""
@@ -222,6 +236,18 @@ class fts_base(object):
         args=get_applicable_args(expression.normalize(args), 0)[0]
         return expression.expression(cr, uid, args, orm_model, context)
 
+    def _get_fts_proxy_values(self, cr, uid, row):
+        """Returns the values used to create a new fts_proxy object. Override if
+        you want to modify standard behavior or if you added columns in 
+        _extra_column"""
+        return {
+                'model': self._model,
+                'res_id': row[0],
+                'rank': row[1],
+                'name': row[2],
+                'summary': row[3],
+               }
+
     def search(self, cr, uid, args, order=None, context=None, count=False,
                searchstring=None):
         """The actual search function. Create fts.proxy objects and returns
@@ -257,6 +283,10 @@ class fts_base(object):
                 if context.get('fts_summary')
                 else 'null'
                 )
+                +
+                ((', '+reduce(lambda x,y: ('' if x is None else x+','+y),
+                    self._extra_columns))
+                if self._extra_columns else '')
             ) +
             """
             FROM %(table)s WHERE %(tsvector_column)s @@ 
@@ -282,14 +312,8 @@ class fts_base(object):
             if count:
                 return row[0]
 
-            res.append(proxy_obj.create(cr, uid,
-                                   {
-                                    'model': self._model,
-                                    'res_id': row[0],
-                                    'rank': row[1],
-                                    'name': row[2],
-                                    'summary': row[3],
-                                   }))
+            res.append(proxy_obj.create(cr, uid, 
+                self._get_fts_proxy_values(cr, uid, row)))
 
         if self._disable_seqscan:
             cr.execute('set enable_seqscan=on')
