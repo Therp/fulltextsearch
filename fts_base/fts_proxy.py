@@ -34,8 +34,8 @@ try:
     def clean_action(req, action, do_not_eval=False):
         global clean_action_org
         action=clean_action_org(req, action,do_not_eval)
-        if (action.get('type')=='ir.actions.act_window' and action.get('view_id') 
-                and action.get('view_id')[1]=='fts_proxy.tree'):
+        if (action.get('type')=='ir.actions.act_window' and action.get('search_view_id') 
+                and action.get('search_view_id')[1]=='fts_proxy.search'):
             action['flags']['selectable']=False
             action['flags']['addable']=False
             action['flags']['isClarkGable']=False
