@@ -117,6 +117,11 @@ class fts_base(object):
         if not self._tsvector_column_trigger:
             self._tsvector_column_trigger = self._tsvector_column + '_trigger'
 
+        self._tsconfig=pool.get('ir.config_parameter').get_param(cr, 
+                SUPERUSER_ID, 'fts_'+self._model+'_tsconfig', 
+                pool.get('ir.config_parameter').get_param(cr, SUPERUSER_ID,
+                    'fts_base_tsconfig', self._tsconfig))
+
         self._create_tsvector_column(pool, cr)
 
     def _create_tsvector_column(self, pool, cr):
