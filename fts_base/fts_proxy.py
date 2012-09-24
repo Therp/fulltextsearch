@@ -177,8 +177,7 @@ class fts_proxy(TransientModel):
 
     def create_init_tsvector_cronjob(self, cr, uid, fts_object):
 
-        fts_classname = (fts_object.__class__.__module__ + '.' +
-                                fts_object.__class__.__name__)
+        fts_classname = (fts_object._model)
 
         self.pool.get('ir.cron').create(cr, SUPERUSER_ID,
             {
@@ -199,8 +198,7 @@ class fts_proxy(TransientModel):
         logger.info('looking for search plugin ' + fts_classname)
 
         for search_plugin in fts_base_meta._plugins:
-            if (search_plugin.__class__.__module__ + '.' +
-                search_plugin.__class__.__name__) == fts_classname:
+            if (search_plugin._model) == fts_classname:
 
                 logger.info('running _init_tsvector_column for ' + fts_classname)
                 search_plugin._init_tsvector_column(self.pool, cr)
