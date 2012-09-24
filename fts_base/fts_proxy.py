@@ -19,36 +19,27 @@
 #
 ##############################################################################
 
-# 6.0 compatibility
-try:
-    from openerp.osv.orm import TransientModel
-    from openerp.osv import fields
-    from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
-    from openerp import SUPERUSER_ID
-    import openerp
-    #from openerp import tools
-    # temporary workaround for lp:1031442
-    import cache_fixed_kwargs as tools
-    #this override creates a nicer view for the search results
-    clean_action_org=openerp.addons.web.controllers.main.clean_action
-    def clean_action(req, action, do_not_eval=False):
-        global clean_action_org
-        action=clean_action_org(req, action,do_not_eval)
-        if (action.get('type')=='ir.actions.act_window' and action.get('search_view_id') 
-                and action.get('search_view_id')[1]=='fts_proxy.search'):
-            action['flags']['selectable']=False
-            action['flags']['addable']=False
-            action['flags']['isClarkGable']=False
-            action['flags']['deletable']=False
-        return action
-    openerp.addons.web.controllers.main.clean_action=clean_action
-
-except:
-    from osv.osv import osv_memory as TransientModel
-    import osv.fields as fields
-    DEFAULT_SERVER_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-    SUPERUSER_ID = 1
-    import tools
+from openerp.osv.orm import TransientModel
+from openerp.osv import fields
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp import SUPERUSER_ID
+from openerp.release import version_info
+import openerp
+# temporary workaround for lp:1031442
+import cache_fixed_kwargs as tools
+#this override creates a nicer view for the search results
+clean_action_org=openerp.addons.web.controllers.main.clean_action
+def clean_action(req, action, do_not_eval=False):
+    global clean_action_org
+    action=clean_action_org(req, action,do_not_eval)
+    if (action.get('type')=='ir.actions.act_window' and action.get('search_view_id') 
+            and action.get('search_view_id')[1]=='fts_proxy.search'):
+        action['flags']['selectable']=False
+        action['flags']['addable']=False
+        action['flags']['isClarkGable']=False
+        action['flags']['deletable']=False
+    return action
+openerp.addons.web.controllers.main.clean_action=clean_action
 
 from fts_base import fts_base_meta
 from fts_base import fts_base
@@ -88,11 +79,6 @@ class fts_proxy(TransientModel):
     def __init__(self, pool, cr):
 
         fts_base.pool = pool
-
-        # 6.0 compatibility
-        if not hasattr(pool, 'db'):
-            import pooler
-            fts_base.pool.__dict__['db'] = pooler.get_db(cr.dbname)
 
         return super(fts_proxy, self).__init__(pool, cr)
 
@@ -170,7 +156,7 @@ class fts_proxy(TransientModel):
                 'type': 'ir.actions.act_window',
                 'res_model': this['model'],
                 'view_type': 'form',
-                'view_mode': 'page',
+                'view_mode': 'page' if version_info[0] < 7 else 'form',
                 'target': 'new',
                 'res_id': this['res_id'],
                 }
@@ -203,6 +189,3 @@ class fts_proxy(TransientModel):
                 logger.info('running _init_tsvector_column for ' + fts_classname)
                 search_plugin._init_tsvector_column(self.pool, cr)
                 logger.info('finished')
-
-# 6.0 compatibility
-fts_proxy()
