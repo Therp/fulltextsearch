@@ -27,7 +27,7 @@
     "category": "Searching",
     "description": "Base module for fulltext search.",
     "init_xml": [],
-    'update_xml': ["fts_proxy.xml"],
+    'update_xml': ["fts_proxy.xml", 'wizard/fts_config.xml'],
     'demo_xml': [],
     'installable': True,
     'active': False,
