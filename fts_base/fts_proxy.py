@@ -177,6 +177,12 @@ class fts_proxy(TransientModel):
                 'interval_number': False,
             })
 
+    def recreate_search_index(self, cr, uid, fts_object):
+        fts_object._drop_indexed_column_trigger(self.pool, cr)
+        fts_object._create_indexed_column_trigger(self.pool, cr)
+        self.pool.get('fts.proxy').create_init_tsvector_cronjob(cr, 
+                uid, fts_object)
+
     def init_tsvector_cronjob(self, cr, uid, fts_classname, context=None):
 
         import logging
@@ -186,6 +192,6 @@ class fts_proxy(TransientModel):
         for search_plugin in fts_base_meta._plugins:
             if (search_plugin._model) == fts_classname:
 
-                logger.info('running _init_tsvector_column for ' + fts_classname)
+                logger.info('running _init_tsvector_column for '+fts_classname)
                 search_plugin._init_tsvector_column(self.pool, cr)
-                logger.info('finished')
+                logger.info('finished _init_tsvector_column for '+fts_classname)

@@ -21,3 +21,4 @@
 
 import fts_proxy
 import fts_base
+import wizard
