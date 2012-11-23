@@ -161,6 +161,7 @@ class fts_base(object):
     def _create_indexed_column_trigger(self, pool, cr):
         """Create a trigger for changes to _indexed_column"""
 
+       
         cr.execute('''
             CREATE TRIGGER "%(tsvector_column_trigger)s" BEFORE INSERT OR UPDATE
             ON "%(table)s" FOR EACH ROW EXECUTE PROCEDURE
@@ -176,6 +177,17 @@ class fts_base(object):
                                    else '","'.join(self._indexed_column))
             })
 
+    def _drop_indexed_column_trigger(self, pool, cr):
+        """Drop the trigger for changes to _indexed_column"""
+
+        cr.execute('''
+            DROP TRIGGER IF EXISTS "%(tsvector_column_trigger)s"
+            ON "%(table)s"''' %
+            {
+                'tsvector_column_trigger': self._tsvector_column_trigger,
+                'table': self._table,
+            })
+ 
     def _init_tsvector_column(self, pool, cr):
         """Fill _tsvector_column. This can take a long time and is called in a
         cronjob.
