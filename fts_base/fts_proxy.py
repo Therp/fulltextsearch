@@ -19,9 +19,10 @@
 #
 ##############################################################################
 
-from openerp.osv.orm import TransientModel
+from openerp.osv.orm import TransientModel, except_orm
 from openerp.osv import fields
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp.tools.translate import _
 from openerp import SUPERUSER_ID
 from openerp.release import version_info
 import openerp
@@ -44,6 +45,7 @@ openerp.addons.web.controllers.main.clean_action=clean_action
 from fts_base import fts_base_meta
 from fts_base import fts_base
 from datetime import datetime
+import psycopg2
 import logging
 logger = logging.getLogger('fulltextsearch')
 
@@ -86,6 +88,9 @@ class fts_proxy(TransientModel):
     def search(self, cr, uid, args, offset=0, limit=None, order=None,
                context=None, count=False):
 
+        if context is None:
+            context={}
+
         searchstring = ''
         models = []
 
@@ -100,6 +105,13 @@ class fts_proxy(TransientModel):
             return []
 
         res = 0 if count else []
+
+        if not context.get('fts_no_syntax_check') and not offset and not count:
+            try:
+                cr.execute("select to_tsquery('pg_catalog.simple', %s)", (searchstring,))
+            except psycopg2.ProgrammingError:
+                raise except_orm(_('Error'), 
+                        _('You filled in an invalid searchstring!'))
 
         #TODO: if this search is limited, it is probably about scrolling and 
         #we have cached the results of the initial nonlimited search. So return 
