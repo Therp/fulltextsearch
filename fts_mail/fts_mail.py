@@ -19,13 +19,14 @@
 #
 ##############################################################################
 
-try:
-    from openerp.addons.fts_base.fts_base import fts_base
-except:
-    from fts_base.fts_base import fts_base
+from openerp.addons.fts_base.fts_base import fts_base
+import openerp
 
 class fts_mail(fts_base):
 
     _model = 'mail.message'
-    _indexed_column = 'body_text'
+    if openerp.release.version_info[0] <= 6:
+        _indexed_column = 'body_text'
+    else:
+        _indexed_column = 'body'
     _title_column = 'subject'
