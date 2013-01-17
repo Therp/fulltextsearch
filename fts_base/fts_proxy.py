@@ -32,7 +32,10 @@ import cache_fixed_kwargs as tools
 clean_action_org=openerp.addons.web.controllers.main.clean_action
 def clean_action(req, action, do_not_eval=False):
     global clean_action_org
-    action=clean_action_org(req, action,do_not_eval)
+    if openerp.release.version_info[0] <= 6:
+        action=clean_action_org(req, action,do_not_eval)
+    else:
+        action=clean_action_org(req, action)
     if (action.get('type')=='ir.actions.act_window' and action.get('search_view_id') 
             and action.get('search_view_id')[1]=='fts_proxy.search'):
         action['flags']['selectable']=False
