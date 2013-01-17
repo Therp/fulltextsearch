@@ -19,10 +19,8 @@
 #
 ##############################################################################
 from openerp.osv import expression
-try:
-    from openerp import SUPERUSER_ID
-except:
-    SUPERUSER_ID = 1
+from openerp import SUPERUSER_ID
+import openerp
 
 class fts_base_meta(type):
 
@@ -250,7 +248,10 @@ class fts_base(object):
                         op1[1] + op2[1] + 1
                         )
 
-        args=get_applicable_args(expression.normalize(args), 0)[0]
+        if openerp.release.version_info[0] <= 6:
+            args=get_applicable_args(expression.normalize(args), 0)[0]
+        else:
+            args=get_applicable_args(expression.normalize_domain(args), 0)[0]
         return expression.expression(cr, uid, args, orm_model, context)
 
     def _get_fts_proxy_values(self, cr, uid, row):
