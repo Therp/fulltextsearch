@@ -24,27 +24,8 @@ from openerp.osv import fields
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp.tools.translate import _
 from openerp import SUPERUSER_ID
-from openerp.release import version_info
-import openerp
 # temporary workaround for lp:1031442
 import cache_fixed_kwargs as tools
-#this override creates a nicer view for the search results
-clean_action_org=openerp.addons.web.controllers.main.clean_action
-def clean_action(req, action, do_not_eval=False):
-    global clean_action_org
-    if openerp.release.version_info[0] <= 6:
-        action=clean_action_org(req, action,do_not_eval)
-    else:
-        action=clean_action_org(req, action)
-    if (action.get('type')=='ir.actions.act_window' and action.get('search_view_id') 
-            and action.get('search_view_id')[1]=='fts_proxy.search'):
-        action['flags']['selectable']=False
-        action['flags']['addable']=False
-        action['flags']['isClarkGable']=False
-        action['flags']['deletable']=False
-    return action
-openerp.addons.web.controllers.main.clean_action=clean_action
-
 from fts_base import fts_base_meta
 from fts_base import fts_base
 from datetime import datetime
@@ -64,14 +45,14 @@ class fts_proxy(TransientModel):
               'text': fields.function(lambda *args,**kwargs: {}, string='Searchstring',
                                       type='text',
                                       fnct_search=lambda *args,**kwargs: {}, readonly=True),
-              'model': fields.char('Model', size=256, translate=True, readonly=True),
+              'model': fields.char('Model', size=256, readonly=True),
               'model_name': fields.function(lambda self, cr, uid, ids, name, arg, context: 
                   dict([
                       (this['id'], self.pool.get('ir.model').name_search(
                           cr, uid, this['model'])[0][1]) 
                       for this in 
                       self.read(cr, uid, ids, ['model'])]), string='Type', 
-                  type='char', readonly=True),
+                  type='char', translate=True, readonly=True),
               'res_id': fields.integer('Res ID', readonly=True),
               'rank': fields.float('Rank', readonly=True),
               'summary': fields.text('Summary', readonly=True)
@@ -159,8 +140,12 @@ class fts_proxy(TransientModel):
                 'type': 'ir.actions.act_window',
                 'res_model': this['model'],
                 'view_type': 'form',
-                'view_mode': 'form,tree',
+                'view_mode': 'form',
                 'res_id': this['res_id'],
+                'target': 'current',
+                'flags': {
+                    'display_breadcrumb': True,
+                    }
                 }
 
     def preview_document(self, cr, uid, ids, context=None):
@@ -171,9 +156,13 @@ class fts_proxy(TransientModel):
                 'type': 'ir.actions.act_window',
                 'res_model': this['model'],
                 'view_type': 'form',
-                'view_mode': 'page' if version_info[0] < 7 else 'form',
+                'view_mode': 'form',
                 'target': 'new',
                 'res_id': this['res_id'],
+                'flags': {
+                    'initial_mode': 'view',
+                    'test': 'test',
+                    },
                 }
 
     def create_init_tsvector_cronjob(self, cr, uid, fts_object):
@@ -200,8 +189,6 @@ class fts_proxy(TransientModel):
 
     def init_tsvector_cronjob(self, cr, uid, fts_classname, context=None):
 
-        import logging
-        logger = logging.getLogger('fts_cronjob')
         logger.info('looking for search plugin ' + fts_classname)
 
         for search_plugin in fts_base_meta._plugins:
