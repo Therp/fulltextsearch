@@ -29,6 +29,10 @@
     "init_xml": [],
     'update_xml': ["fts_proxy.xml", 'wizard/fts_config.xml'],
     'demo_xml': [],
+    'js': [
+        'static/src/js/fts_base.js',
+        ],
+
     'installable': True,
     'active': False,
 }

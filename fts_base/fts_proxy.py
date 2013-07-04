@@ -132,39 +132,6 @@ class fts_proxy(TransientModel):
                                              limit=limit, order=order,
                                              context=context)
 
-    def open_document(self, cr, uid, ids, context=None):
-        if not ids:
-            return False
-        this=self.read(cr, uid, ids[0], ['model', 'res_id'])
-        return {
-                'type': 'ir.actions.act_window',
-                'res_model': this['model'],
-                'view_type': 'form',
-                'view_mode': 'form',
-                'res_id': this['res_id'],
-                'target': 'current',
-                'flags': {
-                    'display_breadcrumb': True,
-                    }
-                }
-
-    def preview_document(self, cr, uid, ids, context=None):
-        if not ids:
-            return False
-        this=self.read(cr, uid, ids[0], ['model', 'res_id'])
-        return {
-                'type': 'ir.actions.act_window',
-                'res_model': this['model'],
-                'view_type': 'form',
-                'view_mode': 'form',
-                'target': 'new',
-                'res_id': this['res_id'],
-                'flags': {
-                    'initial_mode': 'view',
-                    'test': 'test',
-                    },
-                }
-
     def create_init_tsvector_cronjob(self, cr, uid, fts_object):
 
         fts_classname = (fts_object._model)
