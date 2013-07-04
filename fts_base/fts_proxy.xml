@@ -21,7 +21,6 @@
             <field name="type">tree</field>
             <field name="arch" type="xml">
                 <tree string="Fulltext search - results" create="false" delete="false" edit="false">
-                    <button name="open_document" type="object" icon="STOCK_PRINT_PREVIEW" string="Preview document" />
                     <field name="name" />
                     <field name="summary" invisible="not context.get('fts_summary')" />
                     <field name="model_name" />
