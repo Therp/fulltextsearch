@@ -25,7 +25,11 @@
     "depends": ["fts_base", "mail"],
     "author": "Therp BV",
     "category": "Searching",
-    "description": "Fulltext search for eMails.",
+    "description": """
+Fulltext search for eMails
+==========================
+
+Search the content of system messages and emails.""",
     "init_xml": [],
     'update_xml': ['fts_mail.xml'],
     'demo_xml': [],
