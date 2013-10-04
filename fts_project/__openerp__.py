@@ -25,7 +25,15 @@
     "depends": ["fts_base", "project"],
     "author": "Therp BV, VRT Systems",
     "category": "Searching",
-    "description": "Fulltext search for projects and tasks.",
+    "description": """
+Fulltext search for projects and tasks
+======================================
+
+Search in name and description of projects, which in fact are analytic
+accounts.
+
+This module also enables search in name, description and notes of project
+tasks.""",
     "init_xml": [],
     'update_xml': ['fts_project.xml'],
     'demo_xml': [],
