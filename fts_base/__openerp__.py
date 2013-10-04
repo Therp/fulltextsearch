@@ -25,7 +25,13 @@
     "depends": ["base"],
     "author": "Therp BV",
     "category": "Searching",
-    "description": "Base module for fulltext search.",
+    "description": """
+Base module for fulltext search
+===============================
+
+Note that this module by itself does nothing. To actually do searches, install 
+at least one of the other fts_* modules, which enable searching for their
+respective object types.""",
     "init_xml": [],
     'update_xml': ["fts_proxy.xml", 'wizard/fts_config.xml'],
     'demo_xml': [],
