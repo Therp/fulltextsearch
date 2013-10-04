@@ -25,28 +25,34 @@ import openerp
 class fts_base_meta(type):
 
     _plugins = []
+    _to_register = []
 
     def __init__(self, name, bases, attrs):
         if name != 'fts_base':
-            cr = self.pool.db.cursor()
-            cls=self(self.pool, cr)
-            if cls._replace_base:
-                for base in bases:
-                    for plugin in self._plugins:
-                        if plugin.__class__==base:
-                            self._plugins.remove(plugin)
-            self._plugins.append(cls)
-            cr.commit()
-            cr.close()
+            if hasattr(self, 'pool'):
+                self._register()
+            elif self not in self._to_register:
+                self._to_register.append(self)
 
         super(fts_base_meta, self).__init__(name, bases, attrs)
+
+    def _register(self):
+        cr = self.pool.db.cursor()
+        cls=self(self.pool, cr)
+        if cls._replace_base:
+            for base in bases:
+                for plugin in self._plugins:
+                    if plugin.__class__==base:
+                        self._plugins.remove(plugin)
+        if cls not in self._plugins:
+            self._plugins.append(cls)
+        cr.commit()
+        cr.close()
 
 class fts_base(object):
     """This is the base class for modules implementing fulltext searches.
     If you want to mess around with ORM functions, you probably want to go to
     fts_proxy
-    
-    To define your own search operator, 
     """
 
     __metaclass__ = fts_base_meta
@@ -101,6 +107,9 @@ class fts_base(object):
 
     def __init__(self, pool, cr):
         """Assign default values and create _tsvector_column if necessary."""
+        if not pool.get(self._model):
+            return
+
         if not self._table:
             self._table = pool.get(self._model)._table
 

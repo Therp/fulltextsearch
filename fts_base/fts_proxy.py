@@ -62,11 +62,14 @@ class fts_proxy(TransientModel):
 
     _fts_models = {}
 
-    def __init__(self, pool, cr):
+    def _register_hook(self, cr):
+        from openerp import pooler
+
+        pool = pooler.get_pool(cr.dbname)
 
         fts_base.pool = pool
-
-        return super(fts_proxy, self).__init__(pool, cr)
+        for plugin_type in fts_base_meta._to_register:
+            plugin_type._register()
 
     @tools.cache()
     def search(self, cr, uid, args, offset=0, limit=None, order=None,
