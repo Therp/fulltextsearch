@@ -21,7 +21,7 @@
 
 {
     "name": "Fulltext search",
-    "version": "1.0",
+    "version": "1.1",
     "depends": ["base"],
     "author": "Therp BV",
     "category": "Searching",
