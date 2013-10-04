@@ -19,19 +19,11 @@
 #
 ##############################################################################
 
-try:
-    from openerp.addons.fts_base.fts_base import fts_base
-except:
-    from fts_base.fts_base import fts_base
+from openerp.addons.fts_base.fts_base import fts_base
 
 class fts_address(fts_base):
 
-    _model = 'res.partner.address'
-    _indexed_column = ['name', 'city', 'street', 'street2', 'mobile', 'phone']
-    _title_column = '''
-    case 
-    when name is null or name = '' then 
-        (select name from res_partner where id=partner_id)
-    else 
-        name
-    end'''
+    _model = 'res.partner'
+    _indexed_column = ['name', 'city', 'street', 'street2', 'mobile', 'phone',
+            'comment']
+    _title_column = 'name'
