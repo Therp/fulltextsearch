@@ -19,10 +19,7 @@
 #
 ##############################################################################
 
-try:
-    from openerp.addons.fts_base.fts_base import fts_base
-except:
-    from fts_base.fts_base import fts_base
+from openerp.addons.fts_base.fts_base import fts_base
 
 class fts_project_issue(fts_base):
     _model = 'project.issue'

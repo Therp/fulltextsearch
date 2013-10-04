@@ -25,7 +25,11 @@
     "depends": ["fts_base", "project_issue"],
     "author": "Therp BV, VRT Systems",
     "category": "Searching",
-    "description": "Fulltext search for Project Issues.",
+    "description": """
+Fulltext search for Project Issues
+==================================
+
+Search content and names of issues.""",
     "init_xml": [],
     'update_xml': ['fts_project_issue.xml'],
     'demo_xml': [],
