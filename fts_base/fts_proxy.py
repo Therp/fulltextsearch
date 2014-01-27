@@ -69,7 +69,14 @@ class fts_proxy(TransientModel):
 
         fts_base.pool = pool
         for plugin_type in fts_base_meta._to_register:
+            plugin_module = plugin_type.__module__.split('.', 3)[2]
+            if not plugin_module in pool._init_modules:
+                continue
+            if plugin_type in fts_base._plugins:
+                continue
             plugin_type._register()
+
+        fts_base_meta._to_register = []
 
     @tools.cache()
     def search(self, cr, uid, args, offset=0, limit=None, order=None,
