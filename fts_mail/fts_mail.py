@@ -21,6 +21,7 @@
 
 from openerp.addons.fts_base.fts_base import fts_base
 
+
 class fts_mail(fts_base):
 
     _model = 'mail.message'
