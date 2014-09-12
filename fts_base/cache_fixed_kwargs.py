@@ -1,5 +1,6 @@
 import openerp.tools.lru as lru
 
+
 class ormcache(object):
     """ LRU cache decorator for orm methods,
     """
@@ -12,8 +13,9 @@ class ormcache(object):
         self.stat_hit = 0
         self.stat_err = 0
 
-    def __call__(self,m):
+    def __call__(self, m):
         self.method = m
+
         def lookup(self2, cr, *args, **kwargs):
             r = self.lookup(self2, cr, *args, **kwargs)
             return r
@@ -21,7 +23,11 @@ class ormcache(object):
         return lookup
 
     def stat(self):
-        return "lookup-stats hit=%s miss=%s err=%s ratio=%.1f" % (self.stat_hit,self.stat_miss,self.stat_err, (100*float(self.stat_hit))/(self.stat_miss+self.stat_hit) )
+        return "lookup-stats hit=%s miss=%s err=%s ratio=%.1f" % (
+            self.stat_hit,
+            self.stat_miss,
+            self.stat_err,
+            (100 * float(self.stat_hit)) / (self.stat_miss+self.stat_hit))
 
     def lru(self, self2):
         try:
@@ -38,19 +44,19 @@ class ormcache(object):
         d = self.lru(self2)
         key = args[self.skiparg-2:]
         try:
-           r = d[key]
-           self.stat_hit += 1
-           return r
+            r = d[key]
+            self.stat_hit += 1
+            return r
         except KeyError:
-           self.stat_miss += 1
-           value = d[key] = self.method(self2, cr, *args, **kwargs)
-           return value
+            self.stat_miss += 1
+            value = d[key] = self.method(self2, cr, *args, **kwargs)
+            return value
         except TypeError:
-           self.stat_err += 1
-           return self.method(self2, cr, *args, **kwargs)
+            self.stat_err += 1
+            return self.method(self2, cr, *args, **kwargs)
 
     def clear(self, self2, *args):
-        """ Remove *args entry from the cache or all keys if *args is undefined 
+        """ Remove *args entry from the cache or all keys if *args is undefined
         """
         d = self.lru(self2)
         if args:
@@ -62,9 +68,10 @@ class ormcache(object):
         else:
             d.clear()
 
+
 class ormcache_multi(ormcache):
     def __init__(self, skiparg=2, size=8192, multi=3):
-        super(ormcache_multi,self).__init__(skiparg,size)
+        super(ormcache_multi, self).__init__(skiparg, size)
         self.multi = multi - 2
 
     def lookup(self, self2, cr, *args):
@@ -79,11 +86,11 @@ class ormcache_multi(ormcache):
             args[multi] = i
             key = tuple(args[self.skiparg-2:])
             try:
-               r[i] = d[key]
-               self.stat_hit += 1
+                r[i] = d[key]
+                self.stat_hit += 1
             except Exception:
-               self.stat_miss += 1
-               miss.append(i)
+                self.stat_miss += 1
+                miss.append(i)
 
         if miss:
             args[multi] = miss
@@ -96,14 +103,18 @@ class ormcache_multi(ormcache):
 
         return r
 
+
 class dummy_cache(object):
     """ Cache decorator replacement to actually do no caching.
     """
+
     def __init__(self, *l, **kw):
         pass
+
     def __call__(self, fn):
         fn.clear_cache = self.clear
         return fn
+
     def clear(self, *l, **kw):
         pass
 
@@ -111,27 +122,27 @@ if __name__ == '__main__':
 
     class A():
         @ormcache()
-        def m(self,a,b):
-            print  "A::m(", self,a,b
+        def m(self, a, b):
+            print "A::m(", self, a, b
             return 1
 
         @ormcache_multi(multi=3)
-        def n(self,cr,uid,ids):
-            print  "m", self,cr,uid,ids
-            return dict([(i,i) for i in ids])
+        def n(self, cr, uid, ids):
+            print "m", self, cr, uid, ids
+            return dict([(i, i) for i in ids])
 
-    a=A()
-    r=a.m(1,2)
-    r=a.m(1,2)
-    r=a.n("cr",1,[1,2,3,4])
-    r=a.n("cr",1,[1,2])
+    a = A()
+    r = a.m(1, 2)
+    r = a.m(1, 2)
+    r = a.n("cr", 1, [1, 2, 3, 4])
+    r = a.n("cr", 1, [1, 2])
     print r
     for i in a._ormcache:
         print a._ormcache[i].d
-    a.n.clear_cache(a,1,1)
-    r=a.n("cr",1,[1,2])
+    a.n.clear_cache(a, 1, 1)
+    r = a.n("cr", 1, [1, 2])
     print r
-    r=a.n("cr",1,[1,2])
+    r = a.n("cr", 1, [1, 2])
 
 # For backward compatibility
 cache = ormcache

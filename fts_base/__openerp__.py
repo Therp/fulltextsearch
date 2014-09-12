@@ -29,7 +29,7 @@
 Base module for fulltext search
 ===============================
 
-Note that this module by itself does nothing. To actually do searches, install 
+Note that this module by itself does nothing. To actually do searches, install
 at least one of the other fts_* modules, which enable searching for their
 respective object types.""",
     "init_xml": [],
