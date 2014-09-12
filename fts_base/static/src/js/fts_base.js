@@ -37,9 +37,9 @@ openerp.fts_base = function(openerp)
             if(this.model == 'fts.proxy')
             {
                 var self = this;
-                this.dataset.read_ids(
-                    this.dataset.ids[index],
-                    ['model', 'res_id', 'name'])
+                this.dataset.read_index(
+                    ['model', 'res_id', 'name'],
+                    {})
                 .then(function(row)
                     {
                         self.do_action({
@@ -47,13 +47,10 @@ openerp.fts_base = function(openerp)
                             name: row.name,
                             res_model: row.model,
                             target: 'current',
-                            //TODO: decide if we want a popup or breadcrumb. the latter i think
-                            //target: 'new',
                             res_id: row.res_id,
                             views: [[false, 'form']],
                             flags: {
                                 'initial_mode': 'view',
-                            //    'initial_mode': 'edit',
                             },
                         });
                     });
