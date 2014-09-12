@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/Therp/fulltextsearch.svg?branch=7.0)](https://travis-ci.org/Therp/fulltextsearch)
+[![Coverage Status](https://coveralls.io/repos/Therp/fulltextsearch/badge.png?branch=7.0)](https://coveralls.io/r/Therp/fulltextsearch?branch=7.0)
+
 Introduction
 ------------
 
