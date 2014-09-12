@@ -21,17 +21,19 @@
 
 from openerp.addons.fts_base.fts_base import fts_base
 
+
 class fts_analytic_account(fts_base):
     _model = 'account.analytic.account'
-    _indexed_column = ['name','description']
+    _indexed_column = ['name', 'description']
     _title_column = 'name'
     _tsvector_column_index = 'analytic_account_name_desc_tsvector_idx'
     _tsvector_column_trigger = 'analytic_account_name_desc_tsvector_trigger'
 
+
 class fts_project_task(fts_base):
 
     _model = 'project.task'
-    _indexed_column = ['name','description','notes']
+    _indexed_column = ['name', 'description', 'notes']
     _title_column = 'name'
     _tsvector_column_index = 'project_task_name_desc_notes_tsvector_idx'
     _tsvector_column_trigger = 'project_task_name_desc_notes_tsvector_trigger'

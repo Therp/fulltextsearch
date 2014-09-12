@@ -21,9 +21,10 @@
 
 from openerp.addons.fts_base.fts_base import fts_base
 
+
 class fts_project_issue(fts_base):
     _model = 'project.issue'
-    _indexed_column = ['name','description']
+    _indexed_column = ['name', 'description']
     _tsvector_column_index = 'project_issue_name_desc_tsvector_idx'
     _tsvector_column_trigger = 'project_issue_name_desc_tsvector_trigger'
     _title_column = 'name'

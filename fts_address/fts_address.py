@@ -21,9 +21,10 @@
 
 from openerp.addons.fts_base.fts_base import fts_base
 
+
 class fts_address(fts_base):
 
     _model = 'res.partner'
-    _indexed_column = ['name', 'city', 'street', 'street2', 'mobile', 'phone',
-            'comment']
+    _indexed_column = [
+        'name', 'city', 'street', 'street2', 'mobile', 'phone', 'comment']
     _title_column = 'name'
