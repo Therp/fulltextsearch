@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="fts_proxy_search" model="ir.ui.view">
+        <field name="name">fts.proxy.search</field>
+        <field name="model">fts.proxy</field>
+        <field name="arch" type="xml">
+            <search string="Fulltext search">
+                <field name="searchstring" />
+                <field name="res_name" />
+                <field name="res_model" />
+            </search>
+        </field>
+    </record>
+
+    <record id="fts_proxy_tree" model="ir.ui.view">
+        <field name="name">fts.proxy.tree</field>
+        <field name="model">fts.proxy</field>
+        <field name="arch" type="xml">
+            <tree
+                string="Fulltext search - results"
+                create="false"
+                delete="false"
+                edit="false"
+            >
+                <field name="res_name" />
+                <field name="summary" invisible="not context.get('fts_summary')" />
+                <field name="rank" />
+                <field name="res_model" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_fts_proxy_search" model="ir.actions.act_window">
+        <field name="name">Fulltext search</field>
+        <field name="res_model">fts.proxy</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{"fts_summary": False}</field>
+        <field name="view_id" ref="fts_proxy_tree" />
+        <field name="search_view_id" ref="fts_proxy_search" />
+    </record>
+
+    <record id="action_fts_proxy_search_with_summary" model="ir.actions.act_window">
+        <field name="name">With summary</field>
+        <field name="res_model">fts.proxy</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{"fts_summary": True}</field>
+        <field name="view_id" ref="fts_proxy_tree" />
+        <field name="search_view_id" ref="fts_proxy_search" />
+    </record>
+
+    <menuitem
+        id="menu_fts_proxy_search"
+        action="action_fts_proxy_search"
+        web_icon="images/fulltextsearch.png"
+    />
+
+    <menuitem
+        id="menu_fts_proxy_search_with_summary"
+        action="action_fts_proxy_search_with_summary"
+        parent="menu_fts_proxy_search"
+        sequence="32"
+    />
+
+</odoo>
