@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <openerp>
     <data>
         <record id="search" model="ir.ui.view">
@@ -8,7 +8,11 @@
             <field name="inherit_id" ref="fts_base.search" />
             <field name="arch" type="xml">
                     <xpath expr="//field[@name='text']" position="before">
-                        <filter string="Partners" domain="[('model', '=', 'res.partner.address')]" icon="terp-partner" />
+                        <filter
+                        string="Partners"
+                        domain="[('model', '=', 'res.partner.address')]"
+                        icon="terp-partner"
+                    />
                     </xpath>
             </field>
         </record>

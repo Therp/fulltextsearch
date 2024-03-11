@@ -19,22 +19,19 @@
 #
 ##############################################################################
 
-{
-    "name": "Fulltext search - addresses",
-    "version": "1.1",
-    "depends": ["fts_base"],
-    "author": "Therp BV",
-    "category": "Searching",
-    "description": """
-Fulltext search for partner addresses
-=====================================
+from openerp.addons.fts_base.fts_base import fts_base
 
-Searches the fields name, city, street, street2, mobile, phone and comment
-simulatenously.
-    """,
-    "init_xml": [],
-    'update_xml': ['fts_address.xml'],
-    'demo_xml': [],
-    'installable': True,
-    'active': False,
-}
+
+class fts_address(fts_base):
+
+    _model = "res.partner"
+    _indexed_column = [
+        "name",
+        "city",
+        "street",
+        "street2",
+        "mobile",
+        "phone",
+        "comment",
+    ]
+    _title_column = "name"
