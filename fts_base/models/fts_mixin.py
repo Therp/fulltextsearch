@@ -146,10 +146,14 @@ class FtsMixin(models.AbstractModel):
     @api.model
     def _get_fts_proxy_values(self, row):
         """Get vals to fill proxy."""
+        summary = str(row[3]) if row[3] else ""
+        if summary:
+            # Get rid of duplicate whitespace and new lines.
+            summary = " ".join(summary.split())
         return {
             "res_model": self._name,
             "res_id": row[0],
             "rank": row[1],
             "res_name": row[2],
-            "summary": row[3],
+            "summary": summary,
         }
