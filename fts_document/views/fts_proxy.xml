@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="fts_proxy_search" model="ir.ui.view">
+        <field name="name">fts.proxy.search.document</field>
+        <field name="model">fts.proxy</field>
+        <field name="inherit_id" ref="fts_base.fts_proxy_search" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='searchstring']" position="after">
+                <filter
+                    string="Documents"
+                    name="filter_attachment_model"
+                    domain="[('res_model', '=', 'ir.attachment')]"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
