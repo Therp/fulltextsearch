@@ -12,6 +12,7 @@
     "data": [
         "security/ir.model.access.csv",
         "views/fts_proxy.xml",
+        "views/ir_actions_server.xml",
         # "wizard/fts_config.xml",
     ],
     "demo_xml": [],
