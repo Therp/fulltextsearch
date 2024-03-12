@@ -12,6 +12,7 @@ class ResPartner(models.Model):
 
     _proxy_search_field = "text_ts_vector"
     _title_column = "display_name"
+    _extra_columns = ["email"]
 
     text_ts_vector = TSVector(
         indexed_columns=[
