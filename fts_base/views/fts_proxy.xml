@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <search string="Fulltext search">
                 <field name="searchstring" />
+                <field name="date" />
                 <field name="res_name" />
                 <field name="res_model" />
             </search>
@@ -23,6 +24,8 @@
                 edit="false"
             >
                 <field name="res_name" />
+                <field name="date" />
+                <field name="extra" />
                 <field name="summary" invisible="not context.get('fts_summary')" />
                 <field name="rank" />
                 <field name="res_model" />

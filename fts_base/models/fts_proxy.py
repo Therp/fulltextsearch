@@ -36,6 +36,8 @@ class FtsProxy(models.TransientModel):
     )
     rank = fields.Float(string="Rank", digits=(8, 4), compute=False, readonly=True)
     summary = fields.Text("Summary", readonly=True)
+    date = fields.Date()
+    extra = fields.Char()
     searchstring = fields.Char(
         compute=lambda self: None,
         search="_search_searchstring",
