@@ -10,6 +10,7 @@ class MailMessage(models.Model):
     _name = "mail.message"
     _inherit = ["mail.message", "fts.mixin"]
     _title_column = "subject"
+    _extra_columns = ["email_from"]
 
     _proxy_search_field = "body_tsvector"
 
