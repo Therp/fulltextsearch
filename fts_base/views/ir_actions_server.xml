@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="action_open_document" model="ir.actions.server">
+        <field name="name">Open Document</field>
+        <field name="model_id" ref="model_fts_proxy" />
+        <field name="binding_model_id" ref="model_fts_proxy" />
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = record.open_document()
+        </field>
+    </record>
+
+</odoo>
