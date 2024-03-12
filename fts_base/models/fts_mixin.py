@@ -14,6 +14,7 @@ FTS_PROXY_SELECT = (
     " id"
     ", ts_rank(%(tsvector_column)s, to_tsquery(%(language)s, %(searchstring)s))"
     ", %(title_column)s"
+    ", create_date"
 )
 FTS_PROXY_SUMMARY_SELECT = (
     ", ts_headline(%(language)s, %(indexed_columns)s,"
@@ -34,7 +35,7 @@ class FtsMixin(models.AbstractModel):
     # ts_vector type field in this model.
     _proxy_search_field = None
     _title_column = "name"  # Will be used to set res_name in fts.proxy
-    _extra_columns = []
+    _extra_columns = []  # Add extra columns
 
     def _valid_field_parameter(self, field, name):
         return name == "indexed_columns" or super()._valid_field_parameter(field, name)
@@ -130,7 +131,7 @@ class FtsMixin(models.AbstractModel):
             [
                 FTS_PROXY_SELECT,
                 FTS_PROXY_SUMMARY_SELECT if with_summary else ", NULL",
-                ", ".join(self._extra_columns) if self._extra_columns else "",
+                ", %s" % ", ".join(self._extra_columns) if self._extra_columns else "",
                 FTS_PROXY_FROM_WHERE,
             ]
         )
@@ -146,14 +147,18 @@ class FtsMixin(models.AbstractModel):
     @api.model
     def _get_fts_proxy_values(self, row):
         """Get vals to fill proxy."""
-        summary = str(row[3]) if row[3] else ""
+        # rank = min(100, row[0] * 1000)
+        rank = row[0]
+        summary = str(row[4]) if row[4] else ""
         if summary:
             # Get rid of duplicate whitespace and new lines.
             summary = " ".join(summary.split())
         return {
             "res_model": self._name,
             "res_id": row[0],
-            "rank": row[1],
+            "rank": rank,
             "res_name": row[2],
+            "date": row[3],
             "summary": summary,
+            "extra": False if len(row) <= 5 else row[5],
         }
