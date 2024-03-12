@@ -11,6 +11,7 @@ class IrAttachment(models.Model):
     _inherit = ["ir.attachment", "fts.mixin"]
 
     _proxy_search_field = "content_tsvector"
+    _extra_columns = ["mimetype"]
 
     content_tsvector = TSVector(
         indexed_columns=[
