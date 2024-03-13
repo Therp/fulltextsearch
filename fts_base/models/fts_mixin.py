@@ -57,7 +57,8 @@ class FtsMixin(models.AbstractModel):
                 if part[0] in self._fields:
                     # For the moment only support FT search in own fields.
                     field = self._fields[part[0]]
-                    if field.column_type[0] == "tsvector":
+                    # Not all fields, for instance Many2many, have column_type.
+                    if field.column_type and field.column_type[0] == "tsvector":
                         fulltext_leaves.append(part)
                         patched_domain.append(TRUE_LEAF)
                         continue
