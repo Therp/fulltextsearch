@@ -66,6 +66,8 @@ class FtsProxy(models.TransientModel):
                 if part[0] == "res_model":
                     models.append(part[2])
                     continue
+                if part[0] == "date":
+                    part[0] = "create_date"
                 new_domain.append(part)
         # If no search criteria, return Nothing (reversing normal result).
         if not searchstring:

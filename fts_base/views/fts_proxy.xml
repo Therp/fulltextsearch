@@ -6,9 +6,9 @@
         <field name="arch" type="xml">
             <search string="Fulltext search">
                 <field name="searchstring" />
-                <field name="date" />
                 <field name="res_name" />
                 <field name="res_model" />
+                <filter string="Date Created" name="create_date_filter" date="date" />
             </search>
         </field>
     </record>

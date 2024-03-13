@@ -5,7 +5,7 @@ import logging
 from psycopg2.extensions import AsIs
 
 from odoo import api, models
-from odoo.osv.expression import is_leaf
+from odoo.osv.expression import TRUE_LEAF, is_leaf
 
 _logger = logging.getLogger(__name__)
 
@@ -59,10 +59,7 @@ class FtsMixin(models.AbstractModel):
                     field = self._fields[part[0]]
                     if field.column_type[0] == "tsvector":
                         fulltext_leaves.append(part)
-                        # We might have to delete now dangling "&" part.
-                        index = len(patched_domain) - 2
-                        if index >= 0 and patched_domain[index] == "&":
-                            del patched_domain[index]
+                        patched_domain.append(TRUE_LEAF)
                         continue
             else:
                 non_leaves = True
