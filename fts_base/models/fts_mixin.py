@@ -59,6 +59,10 @@ class FtsMixin(models.AbstractModel):
                     field = self._fields[part[0]]
                     if field.column_type[0] == "tsvector":
                         fulltext_leaves.append(part)
+                        # We might have to delete now dangling "&" part.
+                        index = len(patched_domain) - 2
+                        if index >= 0 and patched_domain[index] == "&":
+                            del patched_domain[index]
                         continue
             else:
                 non_leaves = True

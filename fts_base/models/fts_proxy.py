@@ -46,6 +46,12 @@ class FtsProxy(models.TransientModel):
     @api.model
     def _search(self, domain, **kwargs):
         """Searches in some or all models."""
+        # If we get an offset, we just have to scroll in already gathered results.
+        offset = kwargs.get("offset", 0)
+        if offset > 0:
+            return super()._search([], **kwargs)
+        # Order is always on rank (at least for now), pop to prevent exceptions.
+        kwargs.pop("order")  # We might try ordering existing results later.
         count = kwargs.pop("count", False)
         res = 0 if count else []
         # For all models, create transient record, then return all ids.
