@@ -47,7 +47,7 @@ class TSVector(Field):
             # column and create it afresh.
             model._cr.execute(CHECK_TSVECTOR_COLUMN, param_dict)
             attgenerated = model._cr.fetchone() if model._cr.rowcount else ""
-            if attgenerated == "s":
+            if attgenerated and attgenerated[0] == "s":
                 # Column is generated, assume with the right definition.
                 return
         if column:  # Column exist, but is of wrong type.
