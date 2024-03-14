@@ -29,6 +29,7 @@ class TSVector(Field):
     type = "tsvector"
     column_type = ("tsvector", "tsvector")
     readonly = True
+    copy = False
 
     def update_db_column(self, model, column):
         """Create/update the column corresponding to ``self``.
