@@ -1,36 +1,69 @@
-[![Build Status](https://travis-ci.org/Therp/fulltextsearch.svg?branch=7.0)](https://travis-ci.org/Therp/fulltextsearch)
-[![Coverage Status](https://coveralls.io/repos/Therp/fulltextsearch/badge.png?branch=7.0)](https://coveralls.io/r/Therp/fulltextsearch?branch=7.0)
 
 Introduction
 ------------
 
-Provides an extensible framework for OpenERP to do full text search (using PostgreSQL's
-full text search mechanism) on different models. It aims at least possible administration
+Provides an extensible framework for Odoo to do full text search, using PostgreSQL's
+full text search mechanism, on different models. It aims at least possible administration
 effort while still providing fast and high quality search results for users. The modular
 design enables administrators to offer just the full text search wanted and developers
 an easy way to add searches.
 
-For a quick (somewhat technical) overview, read the presentation held on
-the [Open Days 2013](http://www.slideshare.net/openobject/using-full-text-search-in-open-erpholger-brunntherp-ready-partner)
+For Odoo 16.0 this has been significantly overhauled from the original OpenERP 6.1 / 7.0
+implementation, using features that have since been added to PostgreSQL.
+
+The original implementation was presented here:
+[Open Days 2013](http://www.slideshare.net/openobject/using-full-text-search-in-open-erpholger-brunntherp-ready-partner)
 
 Administrators
 --------------
 
 * Install the search module you are interested in (ie `fts_document` to search in
-  documents)
-* Watch your logs. It will fill an index in the background. Look for the line
-  '`running _init_tsvector_column for [somename]`'
-* After that finishes (depending on the size of the table some minutes to some
-  hours), you can do your searches
+  attachments), Installation might take some time, as existing rows in the
+  database will be indexed.
 
 Developers
 ----------
 
-* Derive a class from `fts_base` in your new module
-* Set at least the attributes `_model` and `_indexed_column`
-* Read the comments in `fts_base`
-* Most likely change the search view of fts.proxy
-* Share your results
+* Add the ftx\_mixin to your inheritance, for instance like this:
+  ```
+  class IrAttachment(models.Model):
+
+    _name = "ir.attachment"
+    _inherit = ["ir.attachment", "fts.mixin"]
+  ```
+* Set the class attributes \_proxy\_search\_field and \_extra\_columns:
+
+    _proxy_search_field = "content_tsvector"
+    _extra_columns = ["mimetype"]
+
+* Import tthe TSVectorField field definition and add one or more fields:
+  (the main search field must be set in the \_proxy\_search\_field attribute)
+  ```
+    from odoo.addons.fts_base.tsvector_field import TSVector
+    ...
+        content_tsvector = TSVector(
+        indexed_columns=[
+            "index_content",
+        ],
+        help="FT Search on content",
+  ```
+  It is possible to have multiple TSVector fields and search on them
+  (add them to your search fields).
+
+* If you want to include your model in the global search over all
+  supported models, override the fts\_proxy model to add your model,
+  and update the fts\_proxy search view.
+  ```
+  class FtsProxy(models.TransientModel):
+
+    _inherit = "fts.proxy"
+
+    res_model = fields.Selection(
+        selection_add=[("ir.attachment", "Attachments")],  # Register for FT Search
+        ondelete={"ir.attachment": "cascade"},
+    )
+  ```
+* Share your results.
 
 Support
 -------
