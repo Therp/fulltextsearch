@@ -57,6 +57,7 @@ class FtsProxy(models.TransientModel):
         # For all models, create transient record, then return all ids.
         searchstring = ""
         models = []
+        query_fields = set()
         new_domain = []
         for part in domain:
             if is_leaf(part):
@@ -68,6 +69,9 @@ class FtsProxy(models.TransientModel):
                     continue
                 if part[0] == "date":
                     part[0] = "create_date"
+                else:
+                    # Add first (or only) part of fieldname to set.
+                    query_fields.add(part[0].split(".")[0])
                 new_domain.append(part)
         # If no search criteria, return Nothing (reversing normal result).
         if not searchstring:
@@ -79,8 +83,25 @@ class FtsProxy(models.TransientModel):
         if not models:
             return res
         for model in models:
+            if self._model_missing_field(model, query_fields):
+                continue
             res += self._search_model(model, searchstring, new_domain, **kwargs)
         return res
+
+    def _model_missing_field(self, model, query_fields):
+        """If domain contains field not in model, ignore model."""
+        model_obj = self.env[model]
+        for field_name in query_fields:
+            if field_name not in model_obj._fields:
+                _logger.debug(
+                    "_field %(field_name)s not present on model %(model)s",
+                    {
+                        "model": model_obj._name,
+                        "field_name": field_name,
+                    },
+                )
+                return True
+        return False
 
     def _search_model(self, model, searchstring, domain, **kwargs):
         """FT search on all ts_vector fields in model."""
