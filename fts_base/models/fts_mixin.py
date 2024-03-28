@@ -48,6 +48,7 @@ class FtsMixin(models.AbstractModel):
         normal way, or the result will be used to create proxy records,
         and the ids of those will be returned.
         """
+        query_helper = self.env["fts.query.helper"]
         # Split domain in normal parts and FT leaves.
         patched_domain = []
         fulltext_leaves = []
@@ -76,9 +77,10 @@ class FtsMixin(models.AbstractModel):
         count = kwargs.pop("count", False)  # Ensure we get Query object from super()
         query = super()._search(patched_domain, **kwargs)
         for leave in fulltext_leaves:
+            searchstring = query_helper.parse_searchstring(leave[2])
             query.add_where(
                 """"%s" @@ to_tsquery('simple', %%s)""" % leave[0],
-                where_params=[leave[2]],
+                where_params=[searchstring],
             )
         from_clause, where_clause, params = query.get_sql()
         _logger.debug(
@@ -116,6 +118,8 @@ class FtsMixin(models.AbstractModel):
         res = self._search(domain, **kwargs)
         if count or not res:
             return res
+        query_helper = self.env["fts.query.helper"]
+        searchstring = query_helper.parse_searchstring(searchstring)
         indexed_columns = self._fields[
             self._proxy_search_field
         ].get_indexed_columns_definition()
