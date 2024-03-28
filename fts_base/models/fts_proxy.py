@@ -62,7 +62,10 @@ class FtsProxy(models.TransientModel):
         for part in domain:
             if is_leaf(part):
                 if part[0] == "searchstring":
-                    searchstring = part[2]
+                    if searchstring:
+                        searchstring += " " + part[2]
+                    else:
+                        searchstring = part[2]
                     continue
                 if part[0] == "res_model":
                     models.append(part[2])
