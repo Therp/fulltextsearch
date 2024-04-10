@@ -23,6 +23,7 @@
                 delete="false"
                 edit="false"
             >
+                <button name="action_open_document" type="object" icon="fa-pencil" />
                 <field name="res_name" />
                 <field name="date" />
                 <field name="extra" />

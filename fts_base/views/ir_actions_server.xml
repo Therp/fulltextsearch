@@ -8,7 +8,7 @@
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-            action = record.open_document()
+            action = record.action_open_document()
         </field>
     </record>
 
