@@ -124,7 +124,7 @@ class FtsProxy(models.TransientModel):
             **kwargs
         )
 
-    def open_document(self):
+    def action_open_document(self):
         """Open related document."""
         self.ensure_one()
         return {
