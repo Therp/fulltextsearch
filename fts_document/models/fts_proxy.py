@@ -11,3 +11,12 @@ class FtsProxy(models.TransientModel):
         selection_add=[("ir.attachment", "Attachments")],  # Register for FT Search
         ondelete={"ir.attachment": "cascade"},
     )
+
+    def action_open_document(self):
+        """Open related document."""
+        self.ensure_one()
+        result = super().action_open_document()
+        if self.res_model == "ir.attachment":
+            attachment_form_view = self.env.ref("fts_document.view_attachment_form_fts")
+            result["views"] = [(attachment_form_view.id, "form")]
+        return result

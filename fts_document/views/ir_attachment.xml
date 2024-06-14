@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_attachment_form_fts" model="ir.ui.view">
+        <field name="name">view.attachment.form.fts</field>
+        <field name="model">ir.attachment</field>
+        <field name="priority" eval="100" />
+        <field name="arch" type="xml">
+            <form string="Attachments" edit="0">
+                <field name="type" invisible="1" />
+                <sheet>
+                    <h1>
+                        <!-- Either show donwload of datas or url link. -->
+                        <field
+                            name="datas"
+                            nolabel="1"
+                            filename="name"
+                            attrs="{'invisible':[('type','=','url')]}"
+                        />
+                        <field
+                            name="name"
+                            attrs="{'invisible':[('type','!=','url')]}"
+                        />
+                    </h1>
+                    <group>
+                        <group name="group_content" colspan="4">
+                            <field name="index_content" nolabel="1" colspan="4" />
+                            <field name="mimetype" groups="base.group_no_one" />
+                        </group>
+                        <group
+                            name="group_related_model"
+                            colspan="4"
+                            col="4"
+                            string="Attached To"
+                        >
+                            <field name="res_model" />
+                            <field name="res_field" />
+                            <field name="res_id" />
+                            <field name="public" />
+                            <field name="res_name" colspan="4" />
+                            <field
+                                name="company_id"
+                                groups="base.group_multi_company"
+                            />
+                        </group>
+                        <group
+                            name="group_history"
+                            string="History"
+                            groups="base.group_no_one"
+                            attrs="{'invisible':[('create_date','=',False)]}"
+                        >
+                            <label for="create_uid" string="Creation" />
+                            <div name="creation_div">
+                                <field name="create_uid" class="oe_inline" /> on
+                                <field name="create_date" class="oe_inline" />
+                            </div>
+                        </group>
+                        <group
+                            name="description_group"
+                            string="Description"
+                            groups="base.group_no_one"
+                            colspan="4"
+                            attrs="{'invisible': [('description','=',False)]}"
+                        >
+                        <field name="description" nolabel="1" colspan="2" />
+                        </group>
+                    </group>
+                 </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
