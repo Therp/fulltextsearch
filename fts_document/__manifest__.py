@@ -9,6 +9,9 @@
     "author": "Therp BV",
     "license": "AGPL-3",
     "category": "Searching",
-    "data": ["views/fts_proxy.xml"],
+    "data": [
+        "views/fts_proxy.xml",
+        "views/ir_attachment.xml",
+    ],
     "installable": True,
 }
