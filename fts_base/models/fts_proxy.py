@@ -46,14 +46,6 @@ class FtsProxy(models.TransientModel):
     @api.model
     def _search(self, domain, **kwargs):
         """Searches in some or all models."""
-        # If we get an offset, we just have to scroll in already gathered results.
-        offset = kwargs.get("offset", 0)
-        if offset > 0:
-            return super()._search([], **kwargs)
-        # Order is always on rank (at least for now), pop to prevent exceptions.
-        kwargs.pop("order")  # We might try ordering existing results later.
-        count = kwargs.pop("count", False)
-        res = 0 if count else []
         # For all models, create transient record, then return all ids.
         searchstring = ""
         models = []
@@ -76,20 +68,34 @@ class FtsProxy(models.TransientModel):
                     # Add first (or only) part of fieldname to set.
                     query_fields.add(part[0].split(".")[0])
                 new_domain.append(part)
+        count = kwargs.get("count", False)
+        offset = kwargs.get("offset", False)
+        res = 0 if count else []
         # If no search criteria, return Nothing (reversing normal result).
         if not searchstring:
             _logger.debug("doing nothing because I got no search string")
             return res
+        # Get the existing records, or record count for this user.
+        existing_result = super()._search([("create_uid", "=", self.env.uid)], **kwargs)
+        if count or offset:
+            # If we get a count, we will return the number of records for this user.
+            # If we get an offset, we just have to scroll in already gathered results.
+            return existing_result
+        # existing_result is a Query instance.
+        self.browse(existing_result).unlink()
         # If not models, search in all registered models (for all ts_vector fields)
         if not models:
             models = [selection[0] for selection in self._fields["res_model"].selection]
         if not models:
             return res
+        order = kwargs.pop("order", None)  # Order results later.
         for model in models:
             if self._model_missing_field(model, query_fields):
                 continue
             res += self._search_model(model, searchstring, new_domain, **kwargs)
-        return res
+        # Return ordered results.
+        kwargs["order"] = order  # Restore to keyword args.
+        return super()._search([("create_uid", "=", self.env.uid)], **kwargs)
 
     def _model_missing_field(self, model, query_fields):
         """If domain contains field not in model, ignore model."""
