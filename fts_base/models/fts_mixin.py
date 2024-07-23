@@ -115,7 +115,10 @@ class FtsMixin(models.AbstractModel):
     def _proxy_search(self, searchstring, domain, **kwargs):
         """Search first, then create proxy records."""
         count = kwargs.get("count", False)
-        res = self._search(domain, **kwargs)
+        new_kwargs = dict(kwargs)
+        new_kwargs["limit"] = 1024  # Search further...
+        new_kwargs["offset"] = 0  # Search further...
+        res = self._search(domain, **new_kwargs)
         if count or not res:
             return res
         query_helper = self.env["fts.query.helper"]
