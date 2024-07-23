@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 import logging
 
-from odoo import api, fields, models
+from odoo import api, fields, models, registry
 from odoo.osv.expression import AND, is_leaf
 
 _logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ class FtsProxy(models.TransientModel):
     _name = "fts.proxy"
     _description = __doc__
     _rec_name = "res_name"
-    _order = "rank DESC, res_model ASC"
+    _order = "date DESC, rank DESC"
 
     def _search_searchstring(self, operator, value):
         """Add searchstring to domain. Operator will be ignored."""
@@ -46,7 +46,32 @@ class FtsProxy(models.TransientModel):
     @api.model
     def _search(self, domain, **kwargs):
         """Searches in some or all models."""
+        # Always remove any existing records. Use SQL as unlink does not
+        # delete al the records that need deleting.
+        with registry(self.env.cr.dbname).cursor() as new_cursor:
+            new_cursor.execute(
+                "DELETE FROM fts_proxy WHERE create_uid = %s", (self.env.uid,)
+            )
+            new_cursor.commit()
+        self.invalidate_model()  # Clear all caches for this model.
         # For all models, create transient record, then return all ids.
+        (searchstring, new_domain, models) = self._analyze_domain(domain, **kwargs)
+        count = kwargs.get("count", False)
+        res = 0 if count else []
+        # If no search criteria, return Nothing (reversing normal result).
+        if not searchstring:
+            _logger.debug("doing nothing because I got no search string")
+            return res
+        if not models:  # Should not happen, only when no additonal module installed.
+            _logger.debug("doing nothing because I got no models to search")
+            return res
+        for model in models:
+            res += self._search_model(model, searchstring, new_domain, **kwargs)
+        # Return ordered results.
+        return super()._search([("create_uid", "=", self.env.uid)], **kwargs)
+
+    def _analyze_domain(self, domain, **kwargs):
+        """Get searchstring, modified domain, models used, fields used."""
         searchstring = ""
         models = []
         query_fields = set()
@@ -68,34 +93,16 @@ class FtsProxy(models.TransientModel):
                     # Add first (or only) part of fieldname to set.
                     query_fields.add(part[0].split(".")[0])
                 new_domain.append(part)
-        count = kwargs.get("count", False)
-        offset = kwargs.get("offset", False)
-        res = 0 if count else []
-        # If no search criteria, return Nothing (reversing normal result).
-        if not searchstring:
-            _logger.debug("doing nothing because I got no search string")
-            return res
-        # Get the existing records, or record count for this user.
-        existing_result = super()._search([("create_uid", "=", self.env.uid)], **kwargs)
-        if count or offset:
-            # If we get a count, we will return the number of records for this user.
-            # If we get an offset, we just have to scroll in already gathered results.
-            return existing_result
-        # existing_result is a Query instance.
-        self.browse(existing_result).unlink()
         # If not models, search in all registered models (for all ts_vector fields)
         if not models:
             models = [selection[0] for selection in self._fields["res_model"].selection]
-        if not models:
-            return res
-        order = kwargs.pop("order", None)  # Order results later.
-        for model in models:
-            if self._model_missing_field(model, query_fields):
-                continue
-            res += self._search_model(model, searchstring, new_domain, **kwargs)
-        # Return ordered results.
-        kwargs["order"] = order  # Restore to keyword args.
-        return super()._search([("create_uid", "=", self.env.uid)], **kwargs)
+        # Remove model if query contains any field that is not in the model.
+        models = [
+            model
+            for model in models
+            if not self._model_missing_field(model, query_fields)
+        ]
+        return (searchstring, new_domain, models)
 
     def _model_missing_field(self, model, query_fields):
         """If domain contains field not in model, ignore model."""
