@@ -48,43 +48,30 @@ class FtsMixin(models.AbstractModel):
         normal way, or the result will be used to create proxy records,
         and the ids of those will be returned.
         """
+        debug_helper = self.env["fts.debug.helper"]
+        debug_helper.log_message(
+            "_search called with domain=%(domain)s and kwargs=%(kwargs)s",
+            {
+                "domain": str(domain),
+                "kwargs": str(kwargs),
+            },
+        )
         query_helper = self.env["fts.query.helper"]
         # Split domain in normal parts and FT leaves.
-        patched_domain = []
-        fulltext_leaves = []
-        non_leaves = False
-        for part in domain:
-            if is_leaf(part):
-                if part[0] in self._fields:
-                    # For the moment only support FT search in own fields.
-                    field = self._fields[part[0]]
-                    # Not all fields, for instance Many2many, have column_type.
-                    if field.column_type and field.column_type[0] == "tsvector":
-                        fulltext_leaves.append(part)
-                        patched_domain.append(TRUE_LEAF)
-                        continue
-            else:
-                non_leaves = True
-            patched_domain.append(part)
+        (patched_domain, fulltext_leaves) = self._analyze_domain(domain)
         if not fulltext_leaves:
             return super()._search(domain, **kwargs)
-        if non_leaves:
-            _logger.debug(
-                "Search on %(model)s combines non_leaves with FT search,"
-                " result might not be what is expected.",
-                {"model": self._name},
-            )
         count = kwargs.pop("count", False)  # Ensure we get Query object from super()
         query = super()._search(patched_domain, **kwargs)
-        for leave in fulltext_leaves:
-            searchstring = query_helper.parse_searchstring(leave[2])
+        for fieldname, searchstring in fulltext_leaves.items():
+            searchstring = query_helper.parse_searchstring(searchstring)
             query.add_where(
-                """"%s" @@ to_tsquery('simple', %%s)""" % leave[0],
+                """"%s" @@ to_tsquery('simple', %%s)""" % fieldname,
                 where_params=[searchstring],
             )
         from_clause, where_clause, params = query.get_sql()
-        _logger.debug(
-            "SQL: from - %(from_clause)s, where - %(where_clause)s, params - %(params)s",
+        debug_helper.log_message(
+            "SQL: from=%(from_clause)s, where=%(where_clause)s, params=%(params)s",
             {
                 "from_clause": str(from_clause),
                 "where_clause": str(where_clause),
@@ -94,8 +81,94 @@ class FtsMixin(models.AbstractModel):
         if count:
             limit = kwargs.get("limit", None)
             return self._handle_count(query, limit)
+        # Push searchstring specs in kwargs as dirty trick to return that info.
+        if self._proxy_search_field in fulltext_leaves:
+            kwargs["searchstring"] = fulltext_leaves[self._proxy_search_field]
         # Return patched query.
         return query
+
+    def _analyze_domain(self, domain):
+        """Check for search on tsvector fields, and set them apart from rest."""
+        patched_domain = []
+        fulltext_leaves = {}  # will be keyed on fieldname.
+        or_counter = 0
+        for part in domain:
+            if not is_leaf(part):
+                if part == "|":
+                    or_counter += 1
+            else:
+                part = self._handle_leave_part(part, or_counter, fulltext_leaves)
+                if or_counter and or_counter > 0:
+                    or_counter -= 1
+            patched_domain.append(part)
+        patched_domain = self._clean_domain(patched_domain)
+        self.env["fts.debug.helper"].log_message(
+            "%(model)s._analyze_domain returns:"
+            " patched_domain=%(patched_domain)s,"
+            " fulltext_leaves=%(fulltext_leaves)s",
+            {
+                "model": self._name,
+                "patched_domain": str(patched_domain),
+                "fulltext_leaves": str(fulltext_leaves),
+            },
+        )
+        return (patched_domain, fulltext_leaves)
+
+    def _handle_leave_part(self, part, or_counter, fulltext_leaves):
+        """Handle parts that contain tsvector field."""
+        fieldname = self._proxy_search_field if part[0] == "searchstring" else part[0]
+        if fieldname not in self._fields:
+            # For the moment only support FT search in own fields.
+            return part
+        field = self._fields[fieldname]
+        if not field.column_type or field.column_type[0] != "tsvector":
+            # Not all fields, for instance Many2many, have column_type.
+            return part
+        prefix = (
+            fulltext_leaves[fieldname] + " " if fieldname in fulltext_leaves else ""
+        )
+        if or_counter > 0:
+            fulltext_leaves[fieldname] = prefix + part[2] + " or"
+        else:
+            if " or " in prefix and not prefix.endswith(" or "):
+                # Group or's together.
+                prefix = "(" + prefix.strip() + ") "
+            fulltext_leaves[fieldname] = prefix + part[2]
+        return TRUE_LEAF
+
+    def _clean_domain(self, domain):
+        """Remove some of the TRUE_LEAF's.
+
+        They could all be eliminated, but to complicated for now.
+        ."""
+        if not domain or domain == [TRUE_LEAF]:
+            return []
+        cleaned_domain = domain.copy()
+        current_index = 0
+        # Precondition: we have a valid domain.
+        # Stop condition: index > length of domain to return.
+        # Post condition, domain contains no longer combinations of
+        #    "&" or "|" followed by two TRUE_LEAF's.
+        while current_index < len(cleaned_domain):
+            current_first = cleaned_domain[current_index]
+            head = cleaned_domain.copy()[:current_index] if current_index > 0 else []
+            if current_first in ("|", "&"):
+                current_next = cleaned_domain[current_index + 1]
+                current_after = cleaned_domain[current_index + 2]
+                if (current_next == TRUE_LEAF and current_after == TRUE_LEAF) or (
+                    current_first == "&" and current_next == TRUE_LEAF
+                ):
+                    # Replace with single TRUE LEAVE.
+                    tail = cleaned_domain.copy()[current_index + 2 :]
+                    cleaned_domain = head + tail
+                    current_index = 0  # Test the modified domain from the start
+            current_index += 1
+            # The stop condition will always be reached, because either we increase
+            # the index, or we decrease the length of the domain to return. Though
+            # we reset the index to zero on replacing a combination with a single
+            # TRUE_LEAVE, in the end there will be no more combinations, and the
+            # index will then keep on incrementing.
+        return cleaned_domain
 
     def _handle_count(self, query, limit):
         """This part taken from original _search method."""
@@ -112,7 +185,7 @@ class FtsMixin(models.AbstractModel):
         return self._cr.fetchone()[0]
 
     @api.model
-    def _proxy_search(self, searchstring, domain, **kwargs):
+    def _proxy_search(self, domain, **kwargs):
         """Search first, then create proxy records."""
         count = kwargs.get("count", False)
         new_kwargs = dict(kwargs)
@@ -122,7 +195,7 @@ class FtsMixin(models.AbstractModel):
         if count or not res:
             return res
         query_helper = self.env["fts.query.helper"]
-        searchstring = query_helper.parse_searchstring(searchstring)
+        searchstring = query_helper.parse_searchstring(kwargs.pop("searchstring", ""))
         indexed_columns = self._fields[
             self._proxy_search_field
         ].get_indexed_columns_definition()

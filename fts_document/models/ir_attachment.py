@@ -25,10 +25,10 @@ class IrAttachment(models.Model):
     )
 
     @api.model
-    def _proxy_search(self, searchstring, domain, **kwargs):
+    def _proxy_search(self, domain, **kwargs):
         """Exclude internal attachments from search."""
         patched_domain = AND([domain, ["!", ("res_model", "=ilike", "ir.%")]])
-        return super()._proxy_search(searchstring, patched_domain, **kwargs)
+        return super()._proxy_search(patched_domain, **kwargs)
 
     @api.model
     def _index(self, bin_data, mimetype, checksum=None):
