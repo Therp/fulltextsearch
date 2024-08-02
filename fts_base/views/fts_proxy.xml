@@ -41,6 +41,42 @@
         <field name="context">{"fts_summary": False}</field>
         <field name="view_id" ref="fts_proxy_tree" />
         <field name="search_view_id" ref="fts_proxy_search" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Choose some filters and then some text for Full Text search.
+                No search will be done, before a text is entered.
+            </p><p>
+                You can select one or more of the configured data collections
+                (models), like emails or attachments. If you do not select any,
+                all data collections will be searched.
+            </p><p>
+                For each model a maximum of 1024 entries will be found. If those do
+                not contain what you are looking for, it is either not there, or
+                you can add additional search criteria.
+            </p><p>
+                You can specify criteria this way:
+                <ul style="background-color: white; text-align: left;">
+                    <li>A word - will find all entries containing that word.</li>
+                    <li>Some text follwed by a "*" - will find all entries that have
+                        a word starting with that text.
+                    </li>
+                    <li>Entering multiple words will find entries containing any
+                        of those words. So entering 'cat' and 'dog' will find all
+                        entries that have the word cat, or the word dog, or both.
+                    </li>
+                    <li>Entering multiple words between double quotation marks,
+                        like "cats and dogs" will find only the entries that
+                        contain that exact frase.
+                    </li>
+                    <li>Entering multiple words, each followed by SHIFT+ENTER will
+                        find those documents that contain all of the words.
+                    </li>
+                </ul>
+            </p><p>
+                Note: to prevent unneeded searches, first enter all other criteria, like
+                models to search, or date, and only then the words to search for.
+            </p>
+        </field>
     </record>
 
     <record id="action_fts_proxy_search_with_summary" model="ir.actions.act_window">

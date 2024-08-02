@@ -1,0 +1,268 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* fts_base
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-08-02 15:21+0000\n"
+"PO-Revision-Date: 2024-08-02 15:21+0000\n"
+"Last-Translator: NL66278\n"
+"Language-Team: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: fts_base
+#: model_terms:ir.actions.act_window,help:fts_base.action_fts_proxy_search
+msgid "A word - will find all entries containing that word."
+msgstr "Een woord - vindt alle records die dat woord bevatten."
+
+#. module: fts_base
+#: model:ir.model,name:fts_base.model_fts_mixin
+msgid "Add this to each model that needs FullText search functions."
+msgstr "Voeg dit toe aan ieder model waarin zoeken op tekst nodig is."
+
+#. module: fts_base
+#: model_terms:ir.actions.act_window,help:fts_base.action_fts_proxy_search
+msgid ""
+"Choose some filters and then some text for Full Text search.\n"
+"                No search will be done, before a text is entered."
+msgstr ""
+"Kies enkele filters en dan de tekst om op te zoeken.\n"
+"    Er zal niet worden gezocht voor er tekst is ingevoerd."
+
+#. module: fts_base
+#. odoo-python
+#: code:addons/fts_base/wizards/fts_config.py:0
+#, python-format
+msgid "Configuration"
+msgstr "Instellingen"
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__create_uid
+msgid "Created by"
+msgstr "Aangemaakt door"
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__create_date
+msgid "Created on"
+msgstr "Aangemaakt op"
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__date
+msgid "Date"
+msgstr "Datum"
+
+#. module: fts_base
+#: model_terms:ir.ui.view,arch_db:fts_base.fts_proxy_search
+msgid "Date Created"
+msgstr "Datum aangemaakt"
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__display_name
+msgid "Display Name"
+msgstr "Weergave naam"
+
+#. module: fts_base
+#: model_terms:ir.actions.act_window,help:fts_base.action_fts_proxy_search
+msgid ""
+"Entering multiple words between double quotation marks,\n"
+"                        like \"cats and dogs\" will find only the entries that\n"
+"                        contain that exact frase."
+msgstr ""
+"Het invoeren van meerdere woorden tussen dubbele aanhalingstekens,\n"
+"    zoals \"katten en honden\" zal alleen die records vinden die\n"
+"    die exacte frase bevatten."
+
+#. module: fts_base
+#: model_terms:ir.actions.act_window,help:fts_base.action_fts_proxy_search
+msgid ""
+"Entering multiple words will find entries containing any\n"
+"                        of those words. So entering 'cat' and 'dog' will find all\n"
+"                        entries that have the word cat, or the word dog, or both."
+msgstr ""
+"Het invoeren van meerdere woorden zal records vinden die\n"
+"    enige van deze woorden bevatten. Dus het invoeren van 'kat' en 'hond' zal alle\n"
+"    records vinden die of het woord 'kat' bevatten, of het woord 'hond' of beide"
+"    woorden."
+
+#. module: fts_base
+#: model_terms:ir.actions.act_window,help:fts_base.action_fts_proxy_search
+msgid ""
+"Entering multiple words, each followed by SHIFT+ENTER will\n"
+"                        find those documents that contain all of the words."
+msgstr ""
+"Het invoeren van meerdere woorden, ieder woord gevolgd door SHIFT+ENTER zal\n"
+"    die records vinden die al deze woorden bevatten."
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__extra
+msgid "Extra"
+msgstr "Extra"
+
+#. module: fts_base
+#: model_terms:ir.actions.act_window,help:fts_base.action_fts_proxy_search
+msgid ""
+"For each model a maximum of 1024 entries will be found. If those do\n"
+"                not contain what you are looking for, it is either not there, or\n"
+"                you can add additional search criteria."
+msgstr ""
+"Voor ieder model zal een maximum van 1024 records worden gevonden. Als deze niet\n"
+"    bevatten waar je naar op zoek bent, dan is het gezochte niet aanwezig, of\n"
+"    het is mogelijk om extra zoek-criteria op te geven."
+
+#. module: fts_base
+#: model:ir.model,name:fts_base.model_fts_proxy
+msgid ""
+"Front end to show results of FT searches, together with rank and summary."
+msgstr ""
+"Hulpmodel om het resultaat van zoeken in tekst opdrachten weer te geven,"
+"  samen met relevantie en samenvatting."
+
+#. module: fts_base
+#: model:ir.actions.act_window,name:fts_base.action_fts_proxy_search
+#: model:ir.ui.menu,name:fts_base.menu_fts_proxy_search
+#: model_terms:ir.ui.view,arch_db:fts_base.fts_proxy_search
+msgid "Fulltext search"
+msgstr "Zoeken in tekst"
+
+#. module: fts_base
+#: model_terms:ir.ui.view,arch_db:fts_base.fts_proxy_tree
+msgid "Fulltext search - results"
+msgstr "Zoeken in tekst - resultaten"
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__id
+msgid "ID"
+msgstr "ID"
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy____last_update
+msgid "Last Modified on"
+msgstr "Laatst gewijzigd op"
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__write_uid
+msgid "Last Updated by"
+msgstr "Laatst gewijzigd door"
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__write_date
+msgid "Last Updated on"
+msgstr "Laatst bijgewerkt op"
+
+#. module: fts_base
+#: model_terms:ir.actions.act_window,help:fts_base.action_fts_proxy_search
+msgid ""
+"Note: to prevent unneeded searches, first enter all other criteria, like\n"
+"                models to search, or date, and only then the words to search for."
+msgstr ""
+"Opmerking: om onnodige zoekacties te voorkomen is het het beste eerste alle\n"
+"    andere criteria op te geven, zoals te doorzoeken modellen, of datum, en pas dan"
+"    de woorden om op te zoeken."
+
+#. module: fts_base
+#: model:ir.actions.server,name:fts_base.action_open_document
+msgid "Open Document"
+msgstr "Open Document"
+
+#. module: fts_base
+#: model:ir.model,name:fts_base.model_fts_query_helper
+msgid ""
+"Provides functions to assist in FT Search.\n"
+"\n"
+"    Define as AbstractModel for easy extention and being able\n"
+"    to load this through the registry.\n"
+"    "
+msgstr ""
+
+#. module: fts_base
+#: model:ir.model,name:fts_base.model_fts_debug_helper
+msgid ""
+"Provides logging function to analyse FT problems.\n"
+"\n"
+"    This class is needed to not flood the log with FTS debug\n"
+"    messages, but only log stuff when actually having an Odoo\n"
+"    session in debug mode.\n"
+"\n"
+"    We will use info level messages, so this will also work\n"
+"    on production servers where normally you will not have\n"
+"    debug level logging.\n"
+"    "
+msgstr ""
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__rank
+msgid "Rank"
+msgstr "Relevantie"
+
+#. module: fts_base
+#. odoo-python
+#: code:addons/fts_base/wizards/fts_config.py:0
+#, python-format
+msgid "Recreate search index"
+msgstr ""
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__res_id
+msgid "Resource ID"
+msgstr ""
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__res_model
+msgid "Resource Model"
+msgstr ""
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__res_name
+msgid "Resource Name"
+msgstr "Naam record"
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__searchstring
+msgid "Searchstring"
+msgstr "Zoektekst"
+
+#. module: fts_base
+#: model_terms:ir.actions.act_window,help:fts_base.action_fts_proxy_search
+msgid ""
+"Some text follwed by a \"*\" - will find all entries that have\n"
+"                        a word starting with that text."
+msgstr ""
+"Enige tekst gevolgd door een \"*\" zal die records vinden die\n"
+"    een woord bevatten dat met deze tekst begint."
+
+#. module: fts_base
+#: model:ir.model.fields,field_description:fts_base.field_fts_proxy__summary
+msgid "Summary"
+msgstr "Samenvatting"
+
+#. module: fts_base
+#: model:ir.model.fields,help:fts_base.field_fts_proxy__res_model
+msgid "The model this search works on. Required."
+msgstr "Het model waarop gezocht wordt - verplicht."
+
+#. module: fts_base
+#: model:ir.actions.act_window,name:fts_base.action_fts_proxy_search_with_summary
+#: model:ir.ui.menu,name:fts_base.menu_fts_proxy_search_with_summary
+msgid "With summary"
+msgstr "Met samenvatting"
+
+#. module: fts_base
+#: model_terms:ir.actions.act_window,help:fts_base.action_fts_proxy_search
+msgid ""
+"You can select one or more of the configured data collections\n"
+"                (models), like emails or attachments. If you do not select any,\n"
+"                all data collections will be searched."
+msgstr ""
+"Je kunt een of meerdere van de geconfigureerde data verzamelingen selecteren\n"
+"    om te doorzoeken, zoals emails of documenten. Als je geen enkele dataverzameling"
+"    selecteert, dan zullen alle verzamelingen worden doorzocht.
+
+#. module: fts_base
+#: model_terms:ir.actions.act_window,help:fts_base.action_fts_proxy_search
+msgid "You can specify criteria this way:"
+msgstr "Dit zijn de manieren om zoekcriteria op te geven:"
