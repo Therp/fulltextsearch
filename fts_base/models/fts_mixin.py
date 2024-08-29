@@ -48,21 +48,35 @@ class FtsMixin(models.AbstractModel):
         normal way, or the result will be used to create proxy records,
         and the ids of those will be returned.
         """
-        debug_helper = self.env["fts.debug.helper"]
-        debug_helper.log_message(
-            "_search called with domain=%(domain)s and kwargs=%(kwargs)s",
-            {
-                "domain": str(domain),
-                "kwargs": str(kwargs),
-            },
-        )
-        query_helper = self.env["fts.query.helper"]
         # Split domain in normal parts and FT leaves.
         (patched_domain, fulltext_leaves) = self._analyze_domain(domain)
         if not fulltext_leaves:
             return super()._search(domain, **kwargs)
+        self._log_patch_message(domain, patched_domain, fulltext_leaves, **kwargs)
+        return self._search_with_fulltext(patched_domain, fulltext_leaves, **kwargs)
+
+    def _log_patch_message(self, domain, patched_domain, fulltext_leaves, **kwargs):
+        """Log message to debug any problems with fulltext search."""
+        self.env["fts.debug.helper"].log_message(
+            "%(model)s._analyze_domain returns:"
+            " domain=%(domain)s,"
+            " kwargs=%(kwargs)s,"
+            " patched_domain=%(patched_domain)s,"
+            " fulltext_leaves=%(fulltext_leaves)s",
+            {
+                "model": self._name,
+                "domain": str(domain),
+                "kwargs": str(kwargs),
+                "patched_domain": str(patched_domain),
+                "fulltext_leaves": str(fulltext_leaves),
+            },
+        )
+
+    def _search_with_fulltext(self, patched_domain, fulltext_leaves, **kwargs):
+        """We now know we have to process the fulltext search."""
         count = kwargs.pop("count", False)  # Ensure we get Query object from super()
         query = super()._search(patched_domain, **kwargs)
+        query_helper = self.env["fts.query.helper"]
         for fieldname, searchstring in fulltext_leaves.items():
             searchstring = query_helper.parse_searchstring(searchstring)
             query.add_where(
@@ -70,7 +84,7 @@ class FtsMixin(models.AbstractModel):
                 where_params=[searchstring],
             )
         from_clause, where_clause, params = query.get_sql()
-        debug_helper.log_message(
+        self.env["fts.debug.helper"].log_message(
             "SQL: from=%(from_clause)s, where=%(where_clause)s, params=%(params)s",
             {
                 "from_clause": str(from_clause),
@@ -101,17 +115,10 @@ class FtsMixin(models.AbstractModel):
                 if or_counter and or_counter > 0:
                     or_counter -= 1
             patched_domain.append(part)
+        if not fulltext_leaves:
+            # Just return original domain, and empty fulltext_leaves.
+            return (domain, fulltext_leaves)
         patched_domain = self._clean_domain(patched_domain)
-        self.env["fts.debug.helper"].log_message(
-            "%(model)s._analyze_domain returns:"
-            " patched_domain=%(patched_domain)s,"
-            " fulltext_leaves=%(fulltext_leaves)s",
-            {
-                "model": self._name,
-                "patched_domain": str(patched_domain),
-                "fulltext_leaves": str(fulltext_leaves),
-            },
-        )
         return (patched_domain, fulltext_leaves)
 
     def _handle_leave_part(self, part, or_counter, fulltext_leaves):
