@@ -9,7 +9,7 @@
                 <field name="type" invisible="1" />
                 <sheet>
                     <h1>
-                        <!-- Either show donwload of datas or url link. -->
+                        <!-- Either show download of datas or url link. -->
                         <field
                             name="datas"
                             nolabel="1"
