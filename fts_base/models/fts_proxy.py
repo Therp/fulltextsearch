@@ -22,7 +22,8 @@ class FtsProxy(models.TransientModel):
 
     res_name = fields.Char("Resource Name", readonly=True, required=True)
     res_model = fields.Selection(
-        selection=[],  # Supported models should register with _selection_add.
+        # Other supported models should register with _selection_add.
+        selection=[("fts.content", "Content Store")],
         string="Resource Model",
         readonly=True,
         required=True,
@@ -47,7 +48,11 @@ class FtsProxy(models.TransientModel):
     def _search(self, domain, **kwargs):
         """Searches in some or all models."""
         self._delete_previous_search_results()
-        (searchstring, new_domain, model_objs) = self._analyze_domain(domain, **kwargs)
+        (
+            searchstring,
+            new_domain,
+            model_objs,
+        ) = self._analyze_domain(domain, **kwargs)
         count = kwargs.get("count", False)
         res = 0 if count else []
         # If no search criteria, return Nothing (reversing normal result).
@@ -61,7 +66,7 @@ class FtsProxy(models.TransientModel):
             return res
         # For all models, create transient record, then return all ids.
         for model_obj in model_objs:
-            res += model_obj._proxy_search(new_domain, **kwargs)
+            res += model_obj._proxy_search(new_domain, searchstring, **kwargs)
         if count:
             return res
         # Return ordered results.
@@ -80,14 +85,14 @@ class FtsProxy(models.TransientModel):
     def _analyze_domain(self, domain, **kwargs):
         """Get searchstring, modified domain, models used, fields used."""
         debug_helper = self.env["fts.debug.helper"]
-        searchstring = False
+        searchstring = None
         models = []
         query_fields = set()
         new_domain = []
         for part in domain:
             if is_leaf(part):
                 if part[0] == "searchstring":
-                    searchstring = True
+                    searchstring = part[2]
                 elif part[0] == "res_model":
                     models.append(part[2])
                     part = TRUE_LEAF  # Replace with dummy.
