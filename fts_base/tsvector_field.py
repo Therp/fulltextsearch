@@ -40,7 +40,7 @@ class TSVector(Field):
         param_dict = {
             "table_name": AsIs(model._table),
             "column_name": AsIs(self.name),
-            "indexed_columns": AsIs(self.get_indexed_columns_definition()),
+            "indexed_columns": AsIs(self.get_indexed_columns_definition(model)),
         }
         if column and column["udt_name"] == "tsvector":
             # When column created together with table, it will miss the
@@ -71,9 +71,14 @@ class TSVector(Field):
         # Now create index on column.
         model._cr.execute(CREATE_TSVECTOR_INDEX, param_dict)
 
-    def get_indexed_columns_definition(self):
-        """Get formula to generate content for inxed columns"""
+    def get_indexed_columns_definition(self, model):
+        """Get formula to generate content for indexed columns"""
+        indexed_columns = self.indexed_columns
+        if isinstance(indexed_columns, str):
+            if hasattr(model, indexed_columns):
+                return getattr(model, indexed_columns)()  # Call model method.
+            return "COALESCE(%s, '')" % indexed_columns  # Single column
         # We need the COALESCE to prevent problems with NULL values in indexed fields.
         return " || ' ' || ".join(
-            ["COALESCE(%s, '')" % fieldname for fieldname in self.indexed_columns]
+            ["COALESCE(%s, '')" % fieldname for fieldname in indexed_columns]
         )

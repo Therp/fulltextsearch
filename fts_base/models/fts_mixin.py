@@ -112,7 +112,7 @@ class FtsMixin(models.AbstractModel):
         query_helper = self.env["fts.query.helper"]
         indexed_columns = self._fields[
             self._proxy_search_field
-        ].get_indexed_columns_definition()
+        ].get_indexed_columns_definition(self)
         params_dict = {
             "tsvector_column": AsIs(self._proxy_search_field),
             "language": "simple",
