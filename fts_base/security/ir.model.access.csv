@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_fts_proxy,access_fts_proxy,model_fts_proxy,base.group_user,1,1,1,1
+access_fts_content,access_fts_content,model_fts_content,base.group_user,1,1,1,1
