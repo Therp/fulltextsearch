@@ -38,24 +38,24 @@ class TestFtsQueryHelper(TransactionCase):
         # Multiple words should be linked with '&'.
         self.assertEqual(parsed_string, "rainbow | warrior & film & afghanistan")
 
-    def test_patch_where_clause_replace_like(self):
+    def test_patch_where_clause(self):
         ORIGINAL_WHERE = (
             """("ir_attachment"."res_field" IS NULL)"""
             """ AND ("ir_attachment"."content_tsvector"::text """
-            """ilike %s)"""
+            """= %s)"""
         )
         MODIFIED_WHERE = (
             """("ir_attachment"."res_field" IS NULL)"""  # same
             """ AND ("ir_attachment"."content_tsvector" """  # no more ::text
             """@@ to_tsquery('simple', %s))"""  # replaced
         )
-        modified_where_clause = self.query_helper.patch_where_clause_replace_like(
+        modified_where_clause = self.query_helper.patch_where_clause(
             ORIGINAL_WHERE, "ir_attachment", "content_tsvector"
         )
         self.assertEqual(modified_where_clause, MODIFIED_WHERE)
         # Replace should also succeed it it does not contain ::text
         modified_original = ORIGINAL_WHERE.replace("::text", "")
-        modified_where_clause = self.query_helper.patch_where_clause_replace_like(
+        modified_where_clause = self.query_helper.patch_where_clause(
             modified_original, "ir_attachment", "content_tsvector"
         )
         self.assertEqual(modified_where_clause, MODIFIED_WHERE)
@@ -82,6 +82,4 @@ class TestFtsQueryHelper(TransactionCase):
         )
         self.assertEqual(fulltext_leaves, [("fts_content", "content_tsvector")])
         self.assertEqual(modified_domain[1], "|")
-        self.assertEqual(
-            modified_domain[3], ("content_tsvector", "ilike", "piet | jan")
-        )
+        self.assertEqual(modified_domain[3], ("content_tsvector", "=", "piet | jan"))

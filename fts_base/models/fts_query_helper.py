@@ -47,17 +47,17 @@ class FtsQueryHelper(models.AbstractModel):
         )
         return parsed_string
 
-    def patch_where_clause_replace_like(self, where_clause, table_name, field_name):
-        """Replace a like selection with a FT search selection.
+    def patch_where_clause(self, where_clause, table_name, field_name):
+        """Replace an equals (=) selection with a FT search selection.
 
-        "<table_name>"."<field_name>" ilike %s ==>
+        "<table_name>"."<field_name>" = %s ==>
         "<table_name>"."<field_name>" @@ to_tsquery('simple', %s)
 
         There might be a '::text' cast after the field name. That should also
-        be removed of present.
+        be removed.
         """
         searchstring = (
-            """"%(table_name)s"."%(field_name)s"::text ilike %(placeholder)s"""
+            """"%(table_name)s"."%(field_name)s"::text = %(placeholder)s"""
             % {
                 "table_name": table_name,
                 "field_name": field_name,
@@ -65,7 +65,7 @@ class FtsQueryHelper(models.AbstractModel):
             }
         )
         replacestring = searchstring.replace(
-            """::text ilike %s""", """ @@ to_tsquery('simple', %s)"""
+            """::text = %s""", """ @@ to_tsquery('simple', %s)"""
         )
         clause = where_clause.replace(searchstring, replacestring)  # try with ::text
         searchstring = searchstring.replace("::text", "")
@@ -113,7 +113,7 @@ class FtsQueryHelper(models.AbstractModel):
             patched_domain.append(
                 (
                     actual_name,
-                    "ilike",
+                    "=",  # Use '=' to prevent default search adding '%' characters.
                     self.parse_searchstring(part[2]),
                 )
             )

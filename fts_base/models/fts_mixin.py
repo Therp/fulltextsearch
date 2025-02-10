@@ -79,9 +79,7 @@ class FtsMixin(models.AbstractModel):
         query_helper = self.env["fts.query.helper"]
         for index, clause in enumerate(query._where_clauses):
             for leave in fulltext_leaves:
-                clause = query_helper.patch_where_clause_replace_like(
-                    clause, leave[0], leave[1]
-                )
+                clause = query_helper.patch_where_clause(clause, leave[0], leave[1])
             query._where_clauses[index] = clause
 
     def _handle_count(self, query, limit):
