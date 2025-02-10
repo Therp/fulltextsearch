@@ -59,3 +59,12 @@ class TestFtsQueryHelper(TransactionCase):
         self.assertTrue(records)
         for record in records:
             self.assertIn(record.res_name, ("Nikolay Chernyshevsky", "PLSR motto"))
+
+    def test_wildcard_search(self):
+        """Test search on partial content."""
+        # Should not find record without wildcard
+        records = self.content_model.search([("content_tsvector", "like", "strugg")])
+        self.assertFalse(records)
+        records = self.content_model.search([("content_tsvector", "like", "strugg*")])
+        self.assertTrue(records)
+        self.assertEqual(records[0].name, "PLSR motto")
