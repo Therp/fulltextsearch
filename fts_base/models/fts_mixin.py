@@ -5,7 +5,6 @@ import logging
 from psycopg2.extensions import AsIs
 
 from odoo import api, models
-from odoo.osv.expression import TRUE_LEAF, is_leaf
 
 _logger = logging.getLogger(__name__)
 
@@ -48,43 +47,21 @@ class FtsMixin(models.AbstractModel):
         normal way, or the result will be used to create proxy records,
         and the ids of those will be returned.
         """
-        query_helper = self.env["fts.query.helper"]
         # Split domain in normal parts and FT leaves.
-        patched_domain = []
-        fulltext_leaves = []
-        non_leaves = False
-        for part in domain:
-            if is_leaf(part):
-                if part[0] in self._fields:
-                    # For the moment only support FT search in own fields.
-                    field = self._fields[part[0]]
-                    # Not all fields, for instance Many2many, have column_type.
-                    if field.column_type and field.column_type[0] == "tsvector":
-                        fulltext_leaves.append(part)
-                        patched_domain.append(TRUE_LEAF)
-                        continue
-            else:
-                non_leaves = True
-            patched_domain.append(part)
+        query_helper = self.env["fts.query.helper"]
+        fulltext_leaves, patched_domain = query_helper.fts_patch_domain(self, domain)
         if not fulltext_leaves:
             return super()._search(domain, **kwargs)
-        if non_leaves:
-            _logger.debug(
-                "Search on %(model)s combines non_leaves with FT search,"
-                " result might not be what is expected.",
-                {"model": self._name},
-            )
+        return self._search_with_fulltext(patched_domain, fulltext_leaves, **kwargs)
+
+    def _search_with_fulltext(self, patched_domain, fulltext_leaves, **kwargs):
+        """We now know we have to process the fulltext search."""
         count = kwargs.pop("count", False)  # Ensure we get Query object from super()
         query = super()._search(patched_domain, **kwargs)
-        for leave in fulltext_leaves:
-            searchstring = query_helper.parse_searchstring(leave[2])
-            query.add_where(
-                """"%s" @@ to_tsquery('simple', %%s)""" % leave[0],
-                where_params=[searchstring],
-            )
+        self._fts_modify_query(query, fulltext_leaves)
         from_clause, where_clause, params = query.get_sql()
-        _logger.debug(
-            "SQL: from - %(from_clause)s, where - %(where_clause)s, params - %(params)s",
+        self.env["fts.debug.helper"].log_message(
+            "SQL: from=%(from_clause)s, where=%(where_clause)s, params=%(params)s",
             {
                 "from_clause": str(from_clause),
                 "where_clause": str(where_clause),
@@ -97,10 +74,19 @@ class FtsMixin(models.AbstractModel):
         # Return patched query.
         return query
 
+    def _fts_modify_query(self, query, fulltext_leaves):
+        """Where needed modify like into @@."""
+        query_helper = self.env["fts.query.helper"]
+        for index, clause in enumerate(query._where_clauses):
+            for leave in fulltext_leaves:
+                clause = query_helper.patch_where_clause(clause, leave[0], leave[1])
+            query._where_clauses[index] = clause
+
     def _handle_count(self, query, limit):
         """This part taken from original _search method."""
         # Ignore order and offset when just counting, they don't make sense and could
         # hurt performance
+        query.order = None
         if limit:
             # Special case to avoid counting every record in DB (which can be really slow).
             # The result will be between 0 and limit.
@@ -112,21 +98,23 @@ class FtsMixin(models.AbstractModel):
         return self._cr.fetchone()[0]
 
     @api.model
-    def _proxy_search(self, searchstring, domain, **kwargs):
+    def _proxy_search(self, domain, searchstring, **kwargs):
         """Search first, then create proxy records."""
         count = kwargs.get("count", False)
-        res = self._search(domain, **kwargs)
+        new_kwargs = dict(kwargs)
+        new_kwargs["limit"] = 1024  # Search further...
+        new_kwargs["offset"] = 0  # Search further...
+        res = self._search(domain, **new_kwargs)
         if count or not res:
             return res
         query_helper = self.env["fts.query.helper"]
-        searchstring = query_helper.parse_searchstring(searchstring)
         indexed_columns = self._fields[
             self._proxy_search_field
-        ].get_indexed_columns_definition()
+        ].get_indexed_columns_definition(self)
         params_dict = {
             "tsvector_column": AsIs(self._proxy_search_field),
             "language": "simple",
-            "searchstring": searchstring,
+            "searchstring": query_helper.parse_searchstring(searchstring),
             "title_column": AsIs(self._title_column),
             "indexed_columns": AsIs(indexed_columns),
             "table_name": AsIs(self._table),
