@@ -100,6 +100,7 @@ class FtsMixin(models.AbstractModel):
     @api.model
     def _proxy_search(self, domain, searchstring, **kwargs):
         """Search first, then create proxy records."""
+        kwargs.pop("order", False)  # Ordering will be done later.
         count = kwargs.get("count", False)
         new_kwargs = dict(kwargs)
         new_kwargs["limit"] = 1024  # Search further...

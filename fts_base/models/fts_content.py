@@ -1,6 +1,6 @@
 # Copyright 2025 Therp BV <https://therp.nl>.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-from odoo import fields, models
+from odoo import api, fields, models
 
 from ..tsvector_field import TSVector
 
@@ -28,3 +28,13 @@ class FtsContent(models.Model):
         ],
         help="FT Search on content",
     )
+
+    @api.model
+    def _get_fts_proxy_values(self, row):
+        """Use specific date instead of create_date."""
+        result = super()._get_fts_proxy_values(row)
+        res_model = result.get("res_model", "-")
+        if res_model == self._name:
+            record = self.browse(result["res_id"])
+            result["date"] = record.date
+        return result
