@@ -55,10 +55,23 @@ class TestFtsQueryHelper(TransactionCase):
             ("res_model", "=", "fts.content"),
             ("searchstring", "like", "flame or rights"),
         ]
-        records = proxy_model.search(domain)
+        records = proxy_model.search(domain, order="extra desc")
         self.assertTrue(records)
         for record in records:
             self.assertIn(record.res_name, ("Nikolay Chernyshevsky", "PLSR motto"))
+
+    def test_ordered_search(self):
+        proxy_model = self.env["fts.proxy"]
+        domain = [
+            ("res_model", "=", "fts.content"),
+            ("searchstring", "like", "geluid or flame or rights"),
+        ]
+        records = proxy_model.search(domain, order="date desc")
+        self.assertTrue(records)
+        self.assertEqual(len(records), 3)
+        self.assertEqual(records[0].res_name, "PLSR motto")
+        self.assertEqual(records[1].res_name, "Herman Gorter")
+        self.assertEqual(records[2].res_name, "Nikolay Chernyshevsky")
 
     def test_wildcard_search(self):
         """Test search on partial content."""
