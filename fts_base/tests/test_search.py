@@ -5,6 +5,11 @@ from odoo.tests.common import TransactionCase
 
 TEST_DATA = [
     ("Herman Gorter", "Een nieuwe lente, een nieuw geluid", "2024-12-12"),
+    (
+        "Henriëtte Roland-Holst",
+        "De stilte der natuur heeft veel geluiden",
+        "2024-12-13",
+    ),
     ("Nikolay Chernyshevsky", "The spark will ignite the flame!", "1997-06-13"),
     ("PLSR motto", "Through struggle you will attain your rights!", "2025-01-23"),
 ]
@@ -59,6 +64,18 @@ class TestFtsQueryHelper(TransactionCase):
         self.assertTrue(records)
         for record in records:
             self.assertIn(record.res_name, ("Nikolay Chernyshevsky", "PLSR motto"))
+
+    def test_proxy_rec_name_search(self):
+        """Test combined search on text and rec_name."""
+        proxy_model = self.env["fts.proxy"]
+        domain = [
+            ("res_model", "=", "fts.content"),
+            ("searchstring", "like", "geluid*"),
+            ("res_name", "like", "Henriëtte Roland-Holst"),
+        ]
+        records = proxy_model.search(domain, order="extra desc")
+        self.assertTrue(records)
+        self.assertEqual(records[0].res_name, "Henriëtte Roland-Holst")
 
     def test_ordered_search(self):
         proxy_model = self.env["fts.proxy"]
