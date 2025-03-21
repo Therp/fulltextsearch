@@ -5,6 +5,7 @@ import logging
 from psycopg2.extensions import AsIs
 
 from odoo import api, models
+from odoo.osv.expression import is_leaf
 
 _logger = logging.getLogger(__name__)
 
@@ -49,10 +50,22 @@ class FtsMixin(models.AbstractModel):
         """
         # Split domain in normal parts and FT leaves.
         query_helper = self.env["fts.query.helper"]
+        domain = self._replace_res_name(domain)
         fulltext_leaves, patched_domain = query_helper.fts_patch_domain(self, domain)
         if not fulltext_leaves:
             return super()._search(domain, **kwargs)
         return self._search_with_fulltext(patched_domain, fulltext_leaves, **kwargs)
+
+    def _replace_res_name(self, domain):
+        """If records will be filtered on res_name, use actual name field."""
+        new_domain = []
+        for part in domain:
+            if is_leaf(part):
+                if part[0] == "res_name":
+                    new_domain.append((self._title_column, part[1], part[2]))
+                    continue
+            new_domain.append(part)
+        return new_domain
 
     def _search_with_fulltext(self, patched_domain, fulltext_leaves, **kwargs):
         """We now know we have to process the fulltext search."""

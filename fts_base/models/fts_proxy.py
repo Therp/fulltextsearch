@@ -98,6 +98,8 @@ class FtsProxy(models.TransientModel):
                     part = TRUE_LEAF  # Replace with dummy.
                 elif part[0] == "date":
                     part[0] = "create_date"
+                elif part[0] == "res_name":
+                    pass  # Replacing res_name by actual field done later.
                 else:
                     # Add first (or only) part of fieldname to set.
                     query_fields.add(part[0].split(".")[0])
