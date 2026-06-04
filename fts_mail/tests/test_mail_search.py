@@ -44,3 +44,40 @@ class TestMailSearch(TransactionCase):
         message = self.Message.browse(proxy.res_id)
         self.assertEqual(message.model, self.Partner._name)
         self.assertEqual(message.res_id, self.partner_jan.id)
+
+    def test_proxy_res_name(self):
+        """Mails without a subject should get record id as res_name in fts_proxy"""
+        # Mail with a subject
+        msg_with_subject = self.Message.create(
+            {
+                "subject": "A subject",
+                "body": "a body",
+                "message_type": "comment",
+                "model": self.Partner._name,
+                "res_id": self.partner_jan.id,
+            }
+        )
+        # Mail without a subject
+        msg_without_subject = self.Message.create(
+            {
+                "subject": False,  # no subject
+                "body": "another body",
+                "message_type": "comment",
+                "model": self.Partner._name,
+                "res_id": self.partner_jan.id,
+            }
+        )
+        proxy_records = self.Proxy.search(
+            [
+                ("res_model", "=", self.Message._name),
+                ("searchstring", "=", "body"),
+            ]
+        )
+        self.assertTrue(proxy_records)
+        proxy_by_res_id = {p.res_id: p for p in proxy_records}
+        # Mail with subject: res_name should be the subject
+        proxy_with = proxy_by_res_id.get(msg_with_subject.id)
+        self.assertEqual(proxy_with.res_name, "A subject")
+        # Mail without subject: res_name should be record id
+        proxy_without = proxy_by_res_id.get(msg_without_subject.id)
+        self.assertEqual(proxy_without.res_name, "record %d" % msg_without_subject.id)
