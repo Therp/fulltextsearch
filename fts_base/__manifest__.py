@@ -3,7 +3,7 @@
 
 {
     "name": "Fulltext search",
-    "version": "16.0.1.0.0",
+    "version": "16.0.1.1.0",
     "depends": ["base"],
     "author": "Therp BV",
     "website": "https://github.com/Therp/fulltextsearch",
