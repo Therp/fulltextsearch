@@ -156,14 +156,14 @@ class FtsMixin(models.AbstractModel):
         # not a Query, and must be short-circuited before the INSERT.
         count = kwargs.pop("count", False)
         kwargs.pop("order", False)  # Ordering will be done later.
-        kwargs["limit"] = 1024
+        with_summary = self.env.context.get("fts_summary", False)
+        kwargs["limit"] = 80 if with_summary else 1024
         kwargs["offset"] = 0
         res = self._search(domain, count=count, **kwargs)
         if count or not res:
             return res
         query_helper = self.env["fts.query.helper"]
         searchstring_parsed = query_helper.parse_searchstring(searchstring)
-        with_summary = self.env.context.get("fts_summary", False)
         now = fields.Datetime.now()
         uid = self.env.uid
 
