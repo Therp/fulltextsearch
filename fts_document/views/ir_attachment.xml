@@ -5,7 +5,7 @@
         <field name="model">ir.attachment</field>
         <field name="priority" eval="100" />
         <field name="arch" type="xml">
-            <form string="Attachments" edit="0">
+            <form string="Attachments">
                 <field name="type" invisible="1" />
                 <sheet>
                     <h1>
@@ -14,12 +14,9 @@
                             name="datas"
                             nolabel="1"
                             filename="name"
-                            attrs="{'invisible':[('type','=','url')]}"
+                            invisible="type == 'url'"
                         />
-                        <field
-                            name="name"
-                            attrs="{'invisible':[('type','!=','url')]}"
-                        />
+                        <field name="name" invisible="type != 'url'" />
                     </h1>
                     <group>
                         <group name="group_content" colspan="4">
@@ -46,7 +43,7 @@
                             name="group_history"
                             string="History"
                             groups="base.group_no_one"
-                            attrs="{'invisible':[('create_date','=',False)]}"
+                            invisible="not create_date"
                         >
                             <label for="create_uid" string="Creation" />
                             <div name="creation_div">
@@ -59,12 +56,12 @@
                             string="Description"
                             groups="base.group_no_one"
                             colspan="4"
-                            attrs="{'invisible': [('description','=',False)]}"
+                            invisible="not description"
                         >
-                        <field name="description" nolabel="1" colspan="2" />
+                            <field name="description" nolabel="1" colspan="2" />
                         </group>
                     </group>
-                 </sheet>
+                </sheet>
             </form>
         </field>
     </record>
