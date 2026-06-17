@@ -47,30 +47,28 @@ class FtsQueryHelper(models.AbstractModel):
         )
         return parsed_string
 
-    def patch_where_clause(self, where_clause, table_name, field_name):
+    def patch_where_clause_sql(self, code, params, table_name, field_name):
         """Replace an equals (=) selection with a FT search selection.
 
-        "<table_name>"."<field_name>" = %s ==>
+        Works on the raw SQL code string and params list extracted from an
+        Odoo 18 SQL object (where _where_clauses stores SQL instances).
+
+        "<table_name>"."<field_name>"::text = %s  ==>
         "<table_name>"."<field_name>" @@ to_tsquery('simple', %s)
 
-        There might be a '::text' cast after the field name. That should also
-        be removed.
+        There might be a '::text' cast after the field name; both variants
+        are handled.
         """
-        searchstring = (
-            """"%(table_name)s"."%(field_name)s"::text = %(placeholder)s"""
-            % {
-                "table_name": table_name,
-                "field_name": field_name,
-                "placeholder": "%s",
-            }
+        needle_cast = f'"{table_name}"."{field_name}"::text = %s'
+        needle_plain = f'"{table_name}"."{field_name}" = %s'
+        replacement = (
+            f'"{table_name}"."{field_name}" @@ to_tsquery(\'simple\', %s)'
         )
-        replacestring = searchstring.replace(
-            """::text = %s""", """ @@ to_tsquery('simple', %s)"""
-        )
-        clause = where_clause.replace(searchstring, replacestring)  # try with ::text
-        searchstring = searchstring.replace("::text", "")
-        clause = clause.replace(searchstring, replacestring)  # try without ::text
-        return clause
+        if needle_cast in code:
+            code = code.replace(needle_cast, replacement)
+        elif needle_plain in code:
+            code = code.replace(needle_plain, replacement)
+        return code, params
 
     def get_model_and_field(self, start_model, dotted_field_name):
         """Get model and field for dotted_field_name."""

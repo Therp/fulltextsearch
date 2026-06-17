@@ -1,8 +1,7 @@
 # Copyright 2025 Therp BV <https://therp.nl>.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-from psycopg2.extensions import AsIs
-
 from odoo import api, fields, models
+from odoo.tools.sql import SQL
 
 from ..tsvector_field import TSVector
 
@@ -34,5 +33,5 @@ class FtsContent(models.Model):
     @api.model
     def _proxy_search_select_expressions(self):
         exprs = super()._proxy_search_select_expressions()
-        exprs["date"] = AsIs("date")
+        exprs["date"] = SQL("date")
         return exprs

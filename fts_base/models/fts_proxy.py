@@ -2,7 +2,8 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 import logging
 
-from odoo import api, fields, models, registry
+from odoo import api, fields, models
+from odoo.modules.registry import Registry
 from odoo.osv.expression import TRUE_LEAF, is_leaf
 
 _logger = logging.getLogger(__name__)
@@ -45,44 +46,56 @@ class FtsProxy(models.TransientModel):
     )
 
     @api.model
-    def _search(self, domain, **kwargs):
+    def _search(self, domain, offset=0, limit=None, order=None):
         """Searches in some or all models."""
+        if not any(
+            is_leaf(part) and isinstance(part[0], str) and part[0] == "searchstring"
+            for part in domain
+        ):
+            return super()._search(domain, offset=offset, limit=limit, order=order)
         self._delete_previous_search_results()
         (
             searchstring,
             new_domain,
             model_objs,
-        ) = self._analyze_domain(domain, **kwargs)
-        count = kwargs.get("count", False)
-        res = 0 if count else []
-        # If no search criteria, return Nothing (reversing normal result).
+        ) = self._analyze_domain(domain)
+        # If no search criteria, return an empty query.
         if not searchstring:
             _logger.debug("doing nothing because I got no search string")
-            return res
+            return super()._search(
+                [("id", "=", -1)], offset=offset, limit=limit, order=order
+            )
         if (
             not model_objs
-        ):  # Should not happen, only when no additonal module installed.
+        ):  # Should not happen, only when no additional module installed.
             _logger.debug("doing nothing because I got no models to search")
-            return res
-        # For all models, create transient record, then return all ids.
+            return super()._search(
+                [("id", "=", -1)], offset=offset, limit=limit, order=order
+            )
+        # For all models, populate fts_proxy via INSERT...SELECT.
         for model_obj in model_objs:
-            res += model_obj._proxy_search(new_domain, searchstring, **kwargs)
-        if count:
-            return res
-        # Return ordered results.
-        return super()._search([("create_uid", "=", self.env.uid)], **kwargs)
+            model_obj._proxy_search(
+                new_domain, searchstring, limit=limit, offset=offset
+            )
+        # Return ordered results for this user.
+        return super()._search(
+            [("create_uid", "=", self.env.uid)],
+            offset=offset,
+            limit=limit,
+            order=order,
+        )
 
     def _delete_previous_search_results(self):
         """Delete previous search results for this user."""
-        # Use SQL as unlink does not delete al the records that need deleting.
-        with registry(self.env.cr.dbname).cursor() as new_cursor:
+        # Use SQL as unlink does not delete all the records that need deleting.
+        with Registry(self.env.cr.dbname).cursor() as new_cursor:
             new_cursor.execute(
                 "DELETE FROM fts_proxy WHERE create_uid = %s", (self.env.uid,)
             )
             new_cursor.commit()
         self.invalidate_model()  # Clear all caches for this model.
 
-    def _analyze_domain(self, domain, **kwargs):
+    def _analyze_domain(self, domain):
         """Get searchstring, modified domain, models used, fields used."""
         debug_helper = self.env["fts.debug.helper"]
         searchstring = None
@@ -90,7 +103,7 @@ class FtsProxy(models.TransientModel):
         query_fields = set()
         new_domain = []
         for part in domain:
-            if is_leaf(part):
+            if is_leaf(part) and isinstance(part[0], str):
                 if part[0] == "searchstring":
                     searchstring = part[2]
                 elif part[0] == "res_model":
@@ -157,6 +170,6 @@ class FtsProxy(models.TransientModel):
             "type": "ir.actions.act_window",
             "res_model": self.res_model,
             "view_type": "form",
-            "view_mode": "form,tree",
+            "view_mode": "form,list",
             "res_id": self.res_id,
         }

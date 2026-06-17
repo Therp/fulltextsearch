@@ -39,26 +39,30 @@ class TestFtsQueryHelper(TransactionCase):
         self.assertEqual(parsed_string, "rainbow | warrior & film & afghanistan")
 
     def test_patch_where_clause(self):
-        ORIGINAL_WHERE = (
+        # In Odoo 18, _where_clauses holds SQL objects; patch_where_clause_sql
+        # operates on the raw code string and params list extracted from them.
+        ORIGINAL_CODE = (
             """("ir_attachment"."res_field" IS NULL)"""
             """ AND ("ir_attachment"."content_tsvector"::text """
             """= %s)"""
         )
-        MODIFIED_WHERE = (
+        MODIFIED_CODE = (
             """("ir_attachment"."res_field" IS NULL)"""  # same
             """ AND ("ir_attachment"."content_tsvector" """  # no more ::text
             """@@ to_tsquery('simple', %s))"""  # replaced
         )
-        modified_where_clause = self.query_helper.patch_where_clause(
-            ORIGINAL_WHERE, "ir_attachment", "content_tsvector"
+        params = ["search_term"]
+        modified_code, modified_params = self.query_helper.patch_where_clause_sql(
+            ORIGINAL_CODE, params, "ir_attachment", "content_tsvector"
         )
-        self.assertEqual(modified_where_clause, MODIFIED_WHERE)
-        # Replace should also succeed it it does not contain ::text
-        modified_original = ORIGINAL_WHERE.replace("::text", "")
-        modified_where_clause = self.query_helper.patch_where_clause(
-            modified_original, "ir_attachment", "content_tsvector"
+        self.assertEqual(modified_code, MODIFIED_CODE)
+        self.assertEqual(modified_params, params)
+        # Replace should also succeed if it does not contain ::text
+        original_no_cast = ORIGINAL_CODE.replace("::text", "")
+        modified_code, _ = self.query_helper.patch_where_clause_sql(
+            original_no_cast, params, "ir_attachment", "content_tsvector"
         )
-        self.assertEqual(modified_where_clause, MODIFIED_WHERE)
+        self.assertEqual(modified_code, MODIFIED_CODE)
 
     def test_get_model_and_field(self):
         start_model = self.env["res.users"]

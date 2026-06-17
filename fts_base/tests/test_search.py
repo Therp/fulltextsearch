@@ -51,8 +51,6 @@ class TestFtsQueryHelper(TransactionCase):
             self.assertIn(record.name, ("Nikolay Chernyshevsky", "PLSR motto"))
         count = self.content_model.search_count(domain)
         self.assertEqual(count, 2)
-        count = self.content_model.search(domain, count=True)
-        self.assertEqual(count, 2)
 
     def test_proxy_search(self):
         proxy_model = self.env["fts.proxy"]
@@ -117,7 +115,8 @@ class TestFtsQueryHelper(TransactionCase):
 
         def counting_execute(query, params=None):
             nonlocal insert_count
-            if "INSERT INTO" in query and "fts_proxy" in query:
+            query_str = query.code if hasattr(query, "code") else query
+            if "INSERT INTO" in query_str and "fts_proxy" in query_str:
                 insert_count += 1
             return original_execute(query, params)
 
