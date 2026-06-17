@@ -24,5 +24,5 @@ class FtsDebugHelper(models.AbstractModel):
 
     def log_message(self, message, message_dict):
         """Log message when odoo session in debug mode."""
-        if self.user_has_groups("base.group_no_one"):
+        if self.env.user.has_groups("base.group_no_one"):
             _logger.info(message, message_dict)
