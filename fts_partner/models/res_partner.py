@@ -11,7 +11,7 @@ class ResPartner(models.Model):
     _inherit = ["res.partner", "fts.mixin"]
 
     _proxy_search_field = "text_ts_vector"
-    _title_column = "display_name"
+    _title_column = "name"
     _extra_columns = ["email"]
 
     text_ts_vector = TSVector(
