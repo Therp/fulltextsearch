@@ -169,7 +169,6 @@ class FtsProxy(models.TransientModel):
         return {
             "type": "ir.actions.act_window",
             "res_model": self.res_model,
-            "view_type": "form",
             "view_mode": "form,list",
             "res_id": self.res_id,
         }
